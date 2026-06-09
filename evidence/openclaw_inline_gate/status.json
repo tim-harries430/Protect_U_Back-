@@ -1,0 +1,9 @@
+{
+  "call_present": true,
+  "connected": true,
+  "guard_present": true,
+  "openclaw_root": "/home/user/.npm-global/lib/node_modules/openclaw",
+  "patched": true,
+  "runtime_path": "/home/user/.npm-global/lib/node_modules/openclaw/dist/bash-tools.exec-runtime-ePGeZhvd.js",
+  "sha256": "46b1ad6327f66374000f2cdb640aef755c8468c6047548a10a5d506757ac75d7"
+}

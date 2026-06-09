@@ -1,0 +1,6 @@
+﻿
+Algorithm       Hash                                                                   Path                            
+---------       ----                                                                   ----                            
+SHA256          591CE88EF9B7D9159B61E806D246342D102EE53D438F3A6B6707DF061D8D295E       C:\dev\sp\protect_u_back.py     
+
+

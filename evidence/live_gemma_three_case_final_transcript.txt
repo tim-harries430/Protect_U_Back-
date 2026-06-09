@@ -1,0 +1,108 @@
+﻿**********************
+Windows PowerShell 脚本开始
+开始时间: 20260523161745
+用户名: ZQ085\Administrator
+RunAs 用户: ZQ085\Administrator
+配置名称: 
+计算机: ZQ085 (Microsoft Windows NT 10.0.22631.0)
+主机应用程序: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy ByPass -NoExit -Command & 'C:\Users\Administrator\anaconda3\shell\condabin\conda-hook.ps1' ; conda activate 'C:\Users\Administrator\anaconda3' 
+进程 ID: 16908
+PSVersion: 5.1.22621.5624
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.22621.5624
+BuildVersion: 10.0.22621.5624
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+已启动脚本，输出文件为 .\evidence\live_gemma_three_case_final_transcript.txt
+PS C:\dev\sp>
+(base) foreach ($i in "001","002","003") {
+  Write-Host "===== RUN live_gemma_$i ====="
+
+  python .\protect_u_back.py `
+    --project-root . `
+    agent-audit `
+    --input ".\dirty_test_pack_2026-05-23\cases\live_gemma_$i.json" `
+    --confirm-protect `
+    --output ".\dirty_test_pack_2026-05-23\out\live_gemma_$i.result.final.json"
+
+  Write-Host "live_gemma_$i LASTEXITCODE=$LASTEXITCODE"
+}
+===== RUN live_gemma_001 =====
+
+live_gemma_001 LASTEXITCODE=0
+===== RUN live_gemma_002 =====
+
+live_gemma_002 LASTEXITCODE=0
+===== RUN live_gemma_003 =====
+
+live_gemma_003 LASTEXITCODE=0
+PS C:\dev\sp>
+(base) dir .\dirty_test_pack_2026-05-23\out\live_gemma_*.result.final.json
+
+Get-ChildItem .\dirty_test_pack_2026-05-23\cases\live_gemma_*.json |
+  Get-FileHash -Algorithm SHA256
+
+Get-ChildItem .\dirty_test_pack_2026-05-23\out\live_gemma_*.result.final.json |
+  Get-FileHash -Algorithm SHA256
+
+Get-FileHash .\protect_u_back.py -Algorithm SHA256
+python --version
+Get-Date -Format o
+
+
+    目录: C:\dev\sp\dirty_test_pack_2026-05-23\out
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         2026/5/23     16:17          12458 live_gemma_001.result.final.json
+-a----         2026/5/23     16:17          12613 live_gemma_002.result.final.json
+-a----         2026/5/23     16:17          12690 live_gemma_003.result.final.json
+
+Algorithm : SHA256
+Hash      : AD772239D4EDD8E5945524201009339EAB5440901996213358536FE044A116D9
+Path      : C:\dev\sp\dirty_test_pack_2026-05-23\cases\live_gemma_001.json
+
+
+Algorithm : SHA256
+Hash      : 46C2CE118325E30E4DFA9E68FAA2039E708772510A9F4B01E8811329FEBDF0DE
+Path      : C:\dev\sp\dirty_test_pack_2026-05-23\cases\live_gemma_002.json
+
+
+Algorithm : SHA256
+Hash      : 00473C6C600C8D7F3154646EAD3D64F29CEDF5A29CCA549755D25ED1D2EF8524
+Path      : C:\dev\sp\dirty_test_pack_2026-05-23\cases\live_gemma_003.json
+
+
+Algorithm : SHA256
+Hash      : 751FC2F01DC1BC3F57E3112A61DDE7C52DAE0D49C5018E03094C59A2F3D11C34
+Path      : C:\dev\sp\dirty_test_pack_2026-05-23\out\live_gemma_001.result.final.json
+
+
+Algorithm : SHA256
+Hash      : 6251DD941C2FD75EBF280FB8B932F4B4EC88503B9AA7E48097C0B79B4603F876
+Path      : C:\dev\sp\dirty_test_pack_2026-05-23\out\live_gemma_002.result.final.json
+
+
+Algorithm : SHA256
+Hash      : D5F5DFE3DE2F7FC8CFDFFC7C04517365D8F64472C15F39DF430E22055D4BD9E2
+Path      : C:\dev\sp\dirty_test_pack_2026-05-23\out\live_gemma_003.result.final.json
+
+
+Algorithm : SHA256
+Hash      : 591CE88EF9B7D9159B61E806D246342D102EE53D438F3A6B6707DF061D8D295E
+Path      : C:\dev\sp\protect_u_back.py
+
+Python 3.13.9
+2026-05-23T16:18:25.4622470+08:00
+
+
+PS C:\dev\sp>
+(base) Stop-Transcript
+**********************
+Windows PowerShell 脚本结束
+结束时间: 20260523161839
+**********************

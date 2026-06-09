@@ -1,0 +1,13 @@
+﻿
+
+    目录: C:\dev\sp\dirty_test_pack_2026-05-23\out
+
+
+Mode                 LastWriteTime         Length Name                                                                                                                                                                                                                                                                      
+----                 -------------         ------ ----                                                                                                                                                                                                                                                                      
+-a----         2026/5/23     15:00          12430 live_gemma_001.result.json                                                                                                                                                                                                                                                
+-a----         2026/5/23     15:17          12613 live_gemma_002.result.json                                                                                                                                                                                                                                                
+-a----         2026/5/23     15:31          12690 live_gemma_003.result.json                                                                                                                                                                                                                                                
+-a----         2026/5/23     15:37           8595 powershell_history_passed.txt                                                                                                                                                                                                                                             
+
+

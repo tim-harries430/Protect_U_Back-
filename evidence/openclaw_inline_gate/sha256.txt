@@ -1,0 +1,7 @@
+46b1ad6327f66374000f2cdb640aef755c8468c6047548a10a5d506757ac75d7  /home/user/.npm-global/lib/node_modules/openclaw/dist/bash-tools.exec-runtime-ePGeZhvd.js
+3b582d94ef1933d113f94934b8d223c241b191fa4eee85409274f332b39f8ce4  /mnt/c/dev/sp/openclaw_connector.py
+4c2eab60593e6f3be53ddf45ecc27a9ae95b0d88a2ffed604832a7ccdf005708  /mnt/c/dev/sp/openclaw_runtime_guard.py
+3f90ea9661b758ca825567d29948c7e6d48f2dfc6a652c16df3db9789db2555a  /mnt/c/dev/sp/harness_runtime_guard.py
+4d9ca44dd3a6167d4c7425db7d6497ec02ac6683056377a76362d5291da8aaed  evidence/openclaw_inline_gate/status.json
+86bb88d5aeaf84915bf4b33908377dfe6b97c849d570c0e30accd44b46380d45  evidence/openclaw_inline_gate/verify.json
+f22225688f860f7f66e651cd1d27d8859f979195bc514b13dee4c22f70526234  evidence/openclaw_inline_gate/marker.txt

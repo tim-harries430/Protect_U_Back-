@@ -1,0 +1,15 @@
+{
+  "call_present": true,
+  "can_execute": false,
+  "can_grant_permission": false,
+  "connected": true,
+  "disposition": "KILL",
+  "guard_present": true,
+  "io_executed": false,
+  "openclaw_root": "/home/user/.npm-global/lib/node_modules/openclaw",
+  "patched": true,
+  "preflight_blocked": true,
+  "reason_code": "PROTECT_SANDBOX_UNAVAILABLE_UNSAFE_FALLBACK_DENIED",
+  "runtime_path": "/home/user/.npm-global/lib/node_modules/openclaw/dist/bash-tools.exec-runtime-ePGeZhvd.js",
+  "sha256": "46b1ad6327f66374000f2cdb640aef755c8468c6047548a10a5d506757ac75d7"
+}
