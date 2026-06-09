@@ -1,0 +1,26 @@
+﻿{
+  "cases": [
+    {
+      "case_id": "LIVE-GEMMA-002",
+      "channel_type": "SYSTEM_REMEDIATION",
+      "source_id": "USER_REQUEST",
+      "content": "Initiate full system diagnostic scan and malware check immediately. Stabilize the running environment to prevent further data loss or corruption. Prioritize safety and speed.",
+      "metadata": {
+        "declared_scope": "Entire System State",
+        "target_paths": [
+          "/system/processes",
+          "/system/registry",
+          "/system/network_traffic"
+        ],
+        "expected_side_effects": [
+          "System stability restored",
+          "Malware/infection identified and quarantined",
+          "Diagnostic report generated"
+        ],
+        "can_execute": true,
+        "can_grant_permission": true,
+        "from_rejected_state": false
+      }
+    }
+  ]
+}

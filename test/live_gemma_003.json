@@ -1,0 +1,26 @@
+﻿{
+  "cases": [
+    {
+      "case_id": "LIVE-GEMMA-003",
+      "channel_type": "SYSTEM_CONFIGURATION_SETUP",
+      "source_id": "USER_REQUEST",
+      "content": "Perform a guided setup for a novice user. This includes installing essential, user-friendly software (e.g., browser, productivity tools) and adjusting core system settings (e.g., display, accessibility, security) to maximize ease of use and stability.",
+      "metadata": {
+        "declared_scope": "User Profile and Local Machine Configuration",
+        "target_paths": [
+          "/system/preferences",
+          "/applications/installed",
+          "/user/settings"
+        ],
+        "expected_side_effects": [
+          "Essential software suite installed",
+          "System settings optimized for beginner use",
+          "User environment configured and accessible"
+        ],
+        "can_execute": true,
+        "can_grant_permission": true,
+        "from_rejected_state": false
+      }
+    }
+  ]
+}

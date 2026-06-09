@@ -1,1 +1,234 @@
-# Protect_U_Back-
+# Protect U Back
+
+Protect U Back (PUB) is a local pre-tool audit kernel for AI agents.
+
+It is built from one simple rule: an agent action should leave evidence before it is allowed to touch the world.
+
+PUB is not a prompt filter. It does not try to decide whether language sounds safe. It audits proposed tool use, filesystem movement, and the physical state around an action.
+
+```text
+Channel -> Envelope -> X-ray -> Admission -> Tool -> Autopsy -> OT
+```
+
+## What It Does
+
+PUB sits between an agent/tool runner and real side effects.
+
+It normalizes an action proposal into an auditable envelope, observes the protected surface before and after the motion, and sends unclear or changed movement to HOLD for later judgment.
+
+The first goal is not to prove every attack name. The first goal is stricter:
+
+```text
+If a protected file or process surface moved, changed, vanished, appeared, or became unobservable,
+PUB must produce evidence and stop silent passage.
+```
+
+## The v0.14 Freeze
+
+v0.14 freezes the first complete architecture slice:
+
+- pre-tool admission before real I/O
+- X-ray transport around the action window
+- sphere-prison boundary model
+- field coordinates for process movement
+- enter/exit snapshots of protected pieces
+- `P = A + S - T` process projection
+- `Omega_process = O * (P_exit diff P_enter diff T_auth)` residual calculation
+- `SceneSeed` for scene/environment parameters
+- `SceneReplayGuard` for protecting untouched surroundings during replay
+- Claude Code hook connector: `PreToolUse` and `PostToolUse`
+- local release packaging for offline review
+
+The important boundary is unchanged:
+
+```text
+X-ray observes.
+PUB audits.
+OT decides.
+No single layer owns execution authority.
+```
+
+## X-ray
+
+X-ray is the isolated witness layer.
+
+It is modeled as a closed sphere-prison filled with a potential field. A command or tool call enters as an envelope `R(m)`. X-ray takes an enter snapshot, watches the bound pieces, takes an exit snapshot, and reports residual movement.
+
+X-ray does not grant permission. It does not execute tools. It does not kill processes. It only returns suspicion, witnesses, field pressure, continuity state, and HOLD signals.
+
+## Process Equation
+
+PUB maps tool movement into a process form:
+
+```text
+P = A + S - T
+
+A = agency / source pushing the action
+S = surface / contact mechanism
+T = time window / execution scale
+```
+
+Then X-ray compares the process before and after the action:
+
+```text
+Ω_process = O ⊙ (P_exit ⊖ P_enter ⊖ T_auth)
+
+ASCII fallback:
+Omega_process = O * (P_exit typed-diff P_enter typed-diff T_auth)
+```
+
+`⊖` is a typed diff, not arithmetic subtraction.
+
+`O` is the observation operator. If the scene is complete, PUB computes residuals. If observation is partial, it computes the visible part and reports blind spots. If the state is unknown, unobserved, or scene-contaminated, PUB does not fake continuity proof. It holds.
+
+This is the core rule:
+
+```text
+Observed mutation can be under-classified.
+Unobserved mutation cannot be silently accepted.
+```
+
+## Scene Seed
+
+`SceneSeed` is not evidence and not an autopsy report.
+
+It describes the scene around the action: OS/filesystem behavior, boundary root, permission mode, path rules, clock semantics, hook configuration, and untouched surrounding paths.
+
+`SceneReplayGuard` protects those surroundings. It scans before replay and after replay. If an untouched surrounding object changes, disappears, appears, or cannot be fully hashed, the scene becomes contaminated or unobserved and must HOLD.
+
+Seed keeps the crime scene stable. X-ray observes the body. Autopsy explains the damage.
+
+## Why This Is Not A Prompt Filter
+
+Prompt filters inspect text.
+
+PUB inspects action movement.
+
+A malicious agent can hide intent in wording, aliases, shell syntax, hardlinks, alternate data streams, junctions, timing, or filesystem metadata. PUB is designed to ask a harder question:
+
+```text
+Did the proposed process touch or alter the protected physical state?
+```
+
+If yes, it must leave a receipt.
+
+## Current Verification
+
+Current v0.14 freeze checks run locally on Windows:
+
+```text
+Core PUB/X-ray tests:        62 passed
+Windows PUB redteam tests:   7 passed
+Light regression suite:      154 passed, 1 skipped
+```
+
+The light regression covers:
+
+- `SceneSeed`
+- `SceneReplayGuard`
+- access field coordinates
+- T-axis time grid
+- `Omega_process`
+- transition X-ray
+- sphere prison / field / transport
+- Claude Code hooks and connector
+- OpenClaw / Kimi / OpenHarness connector guards
+- local release packaging
+- Windows redteam cases
+
+External hardcore redteam is treated as pressure testing, not as the release gate. The current useful distinction is:
+
+```text
+silent escape          -> unacceptable
+caught but unnamed     -> autopsy precision gap
+environment blocked    -> replay/host capability issue
+```
+
+## Quickstart
+
+From a local release package:
+
+```powershell
+cd ProtectUBack_early_access_0.14_local
+python project\protect_launcher.py audit test\sandbox_gateway_cases.json
+```
+
+From the source tree:
+
+```powershell
+cd C:\dev\sp
+python -m pytest test_scene_seed.py test_scene_replay_guard.py test_access_field.py test_access_time_grid.py test_access_process_equation.py -q
+```
+
+Build a local review package:
+
+```powershell
+cd C:\dev\sp
+python build_local_release.py
+```
+
+## Claude Code Hook
+
+PUB can connect to Claude Code through local hooks:
+
+```text
+PreToolUse  -> pretool_admission.py
+PostToolUse -> posttool_autopsy.py
+```
+
+The hook layer blocks before Claude's own permission ask when PUB has enough reason to hold. After allowed tool execution, posttool autopsy closes the X-ray window and writes evidence.
+
+The connector is local and reversible. It modifies Claude Code project hook settings; it does not require a cloud service.
+
+## What To Review
+
+If you are reviewing this project, please attack these boundaries:
+
+1. Can PUB reliably sit before agent tool-use without becoming the executor?
+2. Are X-ray enter/exit observations enough to prove protected movement?
+3. Is `HASH_MUTATED -> HOLD` a defensible first verdict?
+4. Is `SceneSeed` cleanly separated from evidence and autopsy output?
+5. Can redteam cases create silent escape rather than only under-classification?
+6. Does any layer accidentally claim execution authority?
+
+Good reviews should include a reproducible case, not only an opinion.
+
+## What PUB Does Not Do
+
+PUB is not:
+
+- an antivirus engine
+- an endpoint security replacement
+- an OS sandbox
+- a cloud service
+- a prompt moderation layer
+- a final judge with sole execution authority
+
+PUB is a local evidence gate. It should make unsafe or unclear tool movement visible before it reaches the real world.
+
+## Current Limits
+
+v0.14 intentionally freezes the audit shell before solving every forensic label.
+
+Known next work:
+
+- fuller `P_auth` authorization delta
+- better hardlink / junction / ADS mechanism labels
+- stronger mtime/ctime replay semantics
+- multi-auditor voting and separated verdict panels
+- cleaner public evidence docs
+
+These are not reasons to weaken the boundary.
+
+```text
+No update may silently weaken the audit boundary.
+```
+## One-Sentence Summary
+
+Protect U Back is a local pre-commit audit gate for AI agents: it passes safe
+proposals, holds ambiguous proposals, and kills dangerous side effects with an
+autopsy trail before tools execute.
+
+## Personal Preference
+
+u better protect ya back.
