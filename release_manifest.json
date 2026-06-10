@@ -98,6 +98,7 @@
     "project/scene_replay_guard.py",
     "project/scene_seed.py",
     "project/task_guard.py",
+    "project/temporal_continuity.py",
     "project/transition_xray.py",
     "project/xray_field.py",
     "project/xray_prison.py",
