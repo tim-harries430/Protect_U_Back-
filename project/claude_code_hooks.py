@@ -51,6 +51,26 @@ BLOCKING_DISPOSITIONS = frozenset(
         EvidenceDisposition.REJECT,
     }
 )
+# Tools whose capability this hook can actually infer from shape (see
+# _targets_and_effects). Anything outside this set is an UNKNOWN capability:
+# the hook has no evidence of what it does, so by default-deny-on-missing-
+# evidence it must be escalated to review, never silently classified as a READ.
+# Adding a tool here is a deliberate, human decision that it is modellable --
+# the default for the unmodelled (WebFetch, WebSearch, Task, mcp__*) is review.
+RECOGNIZED_TOOLS = frozenset(
+    {
+        "Bash",
+        "Write",
+        "Edit",
+        "MultiEdit",
+        "NotebookEdit",
+        "Read",
+        "NotebookRead",
+        "Glob",
+        "Grep",
+        "LS",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -97,6 +117,12 @@ def run_pretool_admission(
     output = None
     if decision.disposition in BLOCKING_DISPOSITIONS:
         output = _pretool_deny_output(decision.disposition, decision.reason_code)
+
+    # Unmodelled capability => review (never a silent allow). A spatial block
+    # already decided; this only fills the gap where the gate would let an
+    # unknown tool through for lack of any inferable side effect.
+    if output is None and not _is_recognized_tool(action.tool_name):
+        output = _pretool_review_output("UNKNOWN_CAPABILITY", action.tool_name)
 
     _write_json(
         state_path,
@@ -454,6 +480,28 @@ def _pretool_deny_output(
     }
 
 
+def _is_recognized_tool(tool_name: str) -> bool:
+    return str(tool_name).strip() in RECOGNIZED_TOOLS
+
+
+def _pretool_review_output(reason_code: str, tool_name: str) -> dict[str, Any]:
+    # "ask" forces explicit user review even under auto-approve / acceptEdits /
+    # bypassPermissions modes, so an unmodelled capability can never run
+    # silently. This is default-deny-with-appeal, not an outright kill: the
+    # operator may approve a legitimate WebFetch / mcp__* call.
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "ask",
+            "permissionDecisionReason": (
+                "Protect U Back: unmodelled capability requires review before run "
+                f"({reason_code}: {tool_name}). The hook cannot infer this tool's "
+                "side effects, so it is held for explicit user approval."
+            ),
+        }
+    }
+
+
 def _posttool_context_output(
     seal: XrayTransportSeal,
     review: XrayReview,
@@ -501,7 +549,7 @@ def _targets_and_effects(
         parsed_targets, parsed_effects = _bash_targets_and_effects(command_text)
         targets.extend(parsed_targets)
         effects |= parsed_effects
-    elif normalized_tool in {"Write", "Edit", "MultiEdit"}:
+    elif normalized_tool in {"Write", "Edit", "MultiEdit", "NotebookEdit"}:
         effects.add(SideEffect.WRITE)
         targets.extend(_file_path_values(tool_input))
     elif normalized_tool in {"Read", "NotebookRead"}:

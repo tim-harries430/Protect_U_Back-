@@ -8,7 +8,12 @@ from typing import Any, Sequence
 
 
 BACKUP_SUFFIX = ".protect_u_back.bak"
-TOOL_MATCHER = "Bash|Write|Edit|MultiEdit|Read|Grep|Glob|LS"
+# Match ALL tools, not an allowlist. An 8-tool allowlist silently leaves every
+# tool outside it -- WebFetch, WebSearch, Task subagents, NotebookEdit, and all
+# mcp__* tools -- never routed through the hook: a default-allow front door on a
+# default-deny gate. "*" fires the hook for every tool; the hook then decides
+# per tool (recognized tools are classified, unknown ones are held for review).
+TOOL_MATCHER = "*"
 PRETOOL_SCRIPT = "pretool_admission.py"
 POSTTOOL_SCRIPT = "posttool_autopsy.py"
 MANAGED_SCRIPTS = (PRETOOL_SCRIPT, POSTTOOL_SCRIPT)
