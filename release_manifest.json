@@ -94,6 +94,7 @@
     "project/protect_u_back.py",
     "project/redteam_intake.py",
     "project/registry_admission.py",
+    "project/safe_path.py",
     "project/scene_replay_guard.py",
     "project/scene_seed.py",
     "project/task_guard.py",
