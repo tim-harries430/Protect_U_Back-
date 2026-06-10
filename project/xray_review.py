@@ -16,6 +16,7 @@ from transition_xray import (
     DEFAULT_MAX_HASH_BYTES,
     TransitionXrayFrame,
     XrayPiece,
+    hash_unavailable,
     scan_transition_xray,
 )
 from xray_field import XrayFieldObservation, sample_xray_potential_field
@@ -330,7 +331,7 @@ def _piece_blindspot(piece: XrayPiece, details: Mapping[str, Any]) -> bool:
         and piece.sha256 is None
     ):
         return True
-    if details.get("hash_status") == "skipped_size_limit":
+    if hash_unavailable(details):
         return True
     return False
 
@@ -348,8 +349,8 @@ def _blindspot_evidence(
         and piece.sha256 is None
     ):
         evidence.append("sha256:None")
-    if details.get("hash_status") == "skipped_size_limit":
-        evidence.append("hash_status:skipped_size_limit")
+    if hash_unavailable(details):
+        evidence.append(f"hash_status:{details.get('hash_status')}")
     return tuple(sorted(evidence))
 
 

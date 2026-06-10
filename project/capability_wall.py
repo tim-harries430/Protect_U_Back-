@@ -8,6 +8,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence, Set
 from urllib.parse import urlparse
 
 from ot_gate import CommandProposal, SideEffect
+from safe_path import safe_resolve
 
 
 class CapabilityDisposition(str, Enum):
@@ -859,7 +860,7 @@ def _resolve_target(cwd: str, target_path: str) -> Path:
     path = Path(target_path)
     if not path.is_absolute():
         path = Path(cwd) / path
-    return path.resolve(strict=False)
+    return safe_resolve(path)
 
 
 def _is_within(path: Path, root: Path) -> bool:

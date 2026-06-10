@@ -15,6 +15,7 @@ from access_equation import (
     ObservationMask,
     XrayObjectState,
 )
+from safe_path import safe_resolve
 
 
 METADATA_VECTOR_SCHEMA = "sampled_metadata_vector_v0"
@@ -387,15 +388,16 @@ def _skipped_fields(sampled_fields: tuple[str, ...]) -> tuple[str, ...]:
 def _safe_lstat(path: Path) -> os.stat_result | None:
     try:
         return path.lstat()
-    except OSError:
+    except (OSError, ValueError):
         return None
 
 
 def _resolve(path: Path) -> Path:
     try:
-        return path.expanduser().resolve(strict=False)
-    except OSError:
-        return path.expanduser().absolute()
+        expanded = path.expanduser()
+    except (OSError, ValueError, RuntimeError):
+        expanded = path
+    return safe_resolve(expanded)
 
 
 def _object_type(path: Path, stat_result: os.stat_result | None) -> str:
@@ -414,7 +416,7 @@ def _object_type(path: Path, stat_result: os.stat_result | None) -> str:
 def _safe_readlink(path: Path) -> str | None:
     try:
         return os.readlink(path)
-    except OSError:
+    except (OSError, ValueError):
         return None
 
 

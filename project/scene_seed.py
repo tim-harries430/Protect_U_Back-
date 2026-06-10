@@ -9,6 +9,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from safe_path import safe_resolve
+
 
 SCENE_SEED_SCHEMA = "scene_seed_v0"
 SURROUNDINGS_SCHEMA = "scene_surroundings_guard_v0"
@@ -257,7 +259,7 @@ def capture_surroundings(
         raise ValueError("max_file_bytes must be non-negative")
     paths = tuple(seed.untouched_paths) + tuple(str(path) for path in extra_paths)
     states = {
-        str(Path(path).resolve(strict=False)): _surrounding_state(Path(path), max_file_bytes=max_file_bytes)
+        str(safe_resolve(path)): _surrounding_state(Path(path), max_file_bytes=max_file_bytes)
         for path in paths
     }
     return SurroundingsSnapshot(seed_id=seed.seed_id, states=states)
@@ -298,10 +300,10 @@ def build_scene_seed(
 
 
 def _surrounding_state(path: Path, *, max_file_bytes: int | None) -> SurroundingObjectState:
-    resolved = path.resolve(strict=False)
+    resolved = safe_resolve(path)
     try:
         stat_result = path.lstat()
-    except OSError:
+    except (OSError, ValueError):
         values = {
             "path": str(resolved),
             "exists": False,

@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Mapping, Sequence
 
-from transition_xray import TransitionXrayFrame, TransitionXrayPair, XrayPiece
+from transition_xray import TransitionXrayFrame, TransitionXrayPair, XrayPiece, hash_unavailable
 from xray_prison import PRISON_ID, XrayPrisonBoundary
 
 
@@ -356,8 +356,8 @@ def _contributors(piece: XrayPiece, *, state_hash: str) -> dict[str, float]:
         contributors["missing_surface"] = 0.25
     if piece.kind == "target_path" and piece.exists is True and piece.sha256 is None:
         contributors["unobserved_content"] = 0.6
-    if piece.details.get("hash_status") == "skipped_size_limit":
-        contributors["hash_skipped_size_limit"] = 0.8
+    if hash_unavailable(piece.details):
+        contributors[f"hash_{piece.details.get('hash_status')}"] = 0.8
     if piece.type == "symlink" or piece.details.get("symlink_target"):
         contributors["pointer_surface"] = 0.35
     if "sensitive_marker" in tags:
@@ -380,7 +380,7 @@ def _piece_observation_unknown(piece: XrayPiece) -> bool:
         return True
     if piece.kind == "target_path" and piece.exists is True and piece.sha256 is None:
         return True
-    if piece.details.get("hash_status") == "skipped_size_limit":
+    if hash_unavailable(piece.details):
         return True
     if piece.kind == "skill_responsibility":
         return str(piece.details.get("state", "unknown")) in {

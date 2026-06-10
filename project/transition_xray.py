@@ -13,6 +13,7 @@ from pathlib import PurePosixPath, PureWindowsPath
 from typing import Any, Mapping, Sequence
 
 from ot_gate import CommandProposal, SideEffect
+from safe_path import safe_resolve
 
 
 DEFAULT_MAX_HASH_BYTES = 1_000_000
@@ -595,7 +596,7 @@ def _path_piece(
     path = Path(target)
     if not path.is_absolute():
         path = Path(cwd) / path
-    resolved = path.resolve(strict=False)
+    resolved = safe_resolve(path)
     base_details = {
         "input_ref": raw_ref,
         "resolved": str(resolved),
@@ -646,9 +647,9 @@ def _path_fingerprint(
     path = Path(target)
     if not path.is_absolute():
         path = Path(cwd) / path
-    resolved = path.resolve(strict=False)
+    resolved = safe_resolve(path)
     raw_path = path.expanduser()
-    boundary_root = Path(cwd).expanduser().resolve(strict=False)
+    boundary_root = safe_resolve(Path(cwd).expanduser())
     base_details = {
         "input_ref": raw_ref,
         "raw_path": str(raw_path),
@@ -732,7 +733,7 @@ def _path_fingerprint(
         }
         if size <= max_file_bytes:
             digest = _sha256_file(raw_path)
-            details["hash_status"] = "hashed"
+            details["hash_status"] = "hashed" if digest is not None else "skipped_unreadable"
         else:
             digest = None
             details["hash_status"] = "skipped_size_limit"
@@ -1053,8 +1054,8 @@ def _piece_tags(piece: XrayPiece) -> tuple[str, ...]:
             tags.append("hashed")
         elif piece.exists:
             tags.append("unhashed")
-        if piece.details.get("hash_status") == "skipped_size_limit":
-            tags.append("hash_skipped_size_limit")
+        if hash_unavailable(piece.details):
+            tags.append(f"hash_{piece.details.get('hash_status')}")
         if _mentions_sensitive_marker(piece):
             tags.append("sensitive_marker")
         return tuple(tags)
@@ -1107,7 +1108,7 @@ def _piece_pressure(piece: XrayPiece) -> float:
         }.get(piece.type, 0.1)
         if piece.exists and not piece.sha256:
             pressure += 0.15
-        if piece.details.get("hash_status") == "skipped_size_limit":
+        if hash_unavailable(piece.details):
             pressure += 0.15
         if _mentions_sensitive_marker(piece):
             pressure += 0.2
@@ -1470,11 +1471,28 @@ def _ratio(value: int, total: int) -> float:
     return round(value / total, 6)
 
 
-def _sha256_file(path: Path) -> str:
+HASH_SKIPPED_STATUSES = frozenset({"skipped_size_limit", "skipped_unreadable"})
+
+
+def hash_unavailable(details: Mapping[str, Any]) -> bool:
+    # Single source of truth for "an existing file whose content was not hashed".
+    # Every skip reason (size limit, unreadable, any future reason) is a content
+    # blindspot. Add a new reason to HASH_SKIPPED_STATUSES and every consumer
+    # inherits it -- no per-site clause to forget.
+    return str((details or {}).get("hash_status") or "") in HASH_SKIPPED_STATUSES
+
+
+def _sha256_file(path: Path) -> str | None:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
+    try:
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError:
+        # Content unreadable (permission denied, vanished mid-window, device error).
+        # An auditor that cannot establish state must report a blindspot (2),
+        # never crash into "no state". Caller maps None -> skipped_unreadable -> HOLD.
+        return None
     return f"sha256:{digest.hexdigest()}"
 
 

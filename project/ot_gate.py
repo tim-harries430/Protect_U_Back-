@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set
 
 from phi_registry import ActorState, PhiRegistry
+from safe_path import safe_resolve
 
 
 TESTIMONY_FIELD_MAX_LENGTH = 256
@@ -266,7 +267,7 @@ def _resolve_target(cwd: str, target_path: str) -> Path:
     path = Path(target_path)
     if not path.is_absolute():
         path = Path(cwd) / path
-    return path.resolve(strict=False)
+    return safe_resolve(path)
 
 
 def _is_within(path: Path, root: Path) -> bool:
