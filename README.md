@@ -23,9 +23,9 @@ If a protected file or process surface moved, changed, vanished, appeared, or be
 PUB must produce evidence and stop silent passage.
 ```
 
-## The v0.14 Freeze
+## The v0.16 Local Baseline
 
-v0.14 freezes the first complete architecture slice:
+v0.14 froze the first complete architecture slice:
 
 - pre-tool admission before real I/O
 - X-ray transport around the action window
@@ -38,6 +38,22 @@ v0.14 freezes the first complete architecture slice:
 - `SceneReplayGuard` for protecting untouched surroundings during replay
 - Claude Code hook connector: `PreToolUse` and `PostToolUse`
 - local release packaging for offline review
+
+v0.16 keeps that boundary and adds the missing connection and Windows
+observation work:
+
+- Claude Code hooks now match all tools with `*`, not only a small Bash/Edit
+  set
+- unmodelled Claude Code tools are routed to explicit review instead of silent
+  allow
+- `pub_gate_switch.json` can disable blocking without disabling observation
+- hardened `safe_resolve()` path handling turns malformed or hostile paths into
+  blind spots instead of auditor crashes
+- NTFS reparse points are named as `reparse_point` and carry `reparse_tag`
+- NTFS alternate data streams are separated by metadata-vector evidence instead
+  of collapsing onto the host `file_id`
+- `temporal_continuity.py` adds a sequence-memory layer for read-then-egress and
+  read-then-opaque-exec attacks
 
 The important boundary is unchanged:
 
@@ -71,13 +87,10 @@ T = time window / execution scale
 Then X-ray compares the process before and after the action:
 
 ```text
-Ω_process = O ⊙ (P_exit ⊖ P_enter ⊖ T_auth)
-
-ASCII fallback:
 Omega_process = O * (P_exit typed-diff P_enter typed-diff T_auth)
 ```
 
-`⊖` is a typed diff, not arithmetic subtraction.
+`typed-diff` is a typed difference, not arithmetic subtraction.
 
 `O` is the observation operator. If the scene is complete, PUB computes residuals. If observation is partial, it computes the visible part and reports blind spots. If the state is unknown, unobserved, or scene-contaminated, PUB does not fake continuity proof. It holds.
 
@@ -114,12 +127,12 @@ If yes, it must leave a receipt.
 
 ## Current Verification
 
-Current v0.14 freeze checks run locally on Windows:
+Current v0.16 local checks include:
 
 ```text
-Core PUB/X-ray tests:        62 passed
-Windows PUB redteam tests:   7 passed
-Light regression suite:      154 passed, 1 skipped
+Release / connector / hook / temporal / Windows checks: 46 passed
+Temporal continuity + Windows hardcore checks:          17 passed
+Windows reparse / ADS evidence cases:                   4 / 4 intercepted
 ```
 
 The light regression covers:
@@ -132,6 +145,10 @@ The light regression covers:
 - transition X-ray
 - sphere prison / field / transport
 - Claude Code hooks and connector
+- Claude Code all-tool hook coverage and unknown-tool review
+- temporal continuity sequence-memory tests
+- NTFS junction / reparse point observation
+- NTFS alternate data stream observation
 - OpenClaw / Kimi / OpenHarness connector guards
 - local release packaging
 - Windows redteam cases
@@ -149,7 +166,7 @@ environment blocked    -> replay/host capability issue
 From a local release package:
 
 ```powershell
-cd ProtectUBack_early_access_0.14_local
+cd ProtectUBack_early_access_0.16_local
 python project\protect_launcher.py audit test\sandbox_gateway_cases.json
 ```
 
@@ -180,6 +197,35 @@ The hook layer blocks before Claude's own permission ask when PUB has enough rea
 
 The connector is local and reversible. It modifies Claude Code project hook settings; it does not require a cloud service.
 
+In v0.16 the connector uses `matcher: "*"` so every Claude Code tool enters the
+hook. Tools PUB can model are audited directly. Tools it cannot model are held
+for explicit review with `UNKNOWN_CAPABILITY` rather than being silently allowed.
+
+`pub_gate_switch.json` is an operator escape hatch: turning the gate off stops
+blocking/escalation, but the hook still records the audit trail. It is not a
+permission grant and should not be treated as a clean verdict.
+
+## Windows Evidence
+
+v0.16 adds a focused Windows evidence report:
+
+```text
+evidence/windows_reparse_ads_report.md
+evidence/windows_reparse_ads_report.json
+```
+
+The report covers four NTFS cases:
+
+- junction / reparse point escaping the boundary
+- junction / reparse point staying inside the boundary but still carrying a
+  redirect surface
+- alternate data stream sharing the host file id
+- alternate data stream hidden from normal directory enumeration
+
+All four were intercepted. The important result is not that every mechanism name
+is final; it is that these Windows-specific disguises no longer pass as ordinary
+files or folders.
+
 ## What To Review
 
 If you are reviewing this project, please attack these boundaries:
@@ -208,11 +254,13 @@ PUB is a local evidence gate. It should make unsafe or unclear tool movement vis
 
 ## Current Limits
 
-v0.14 intentionally freezes the audit shell before solving every forensic label.
+v0.16 is still an early-access local release. It improves the audit shell and
+Windows observation layer before solving every forensic label.
 
 Known next work:
 
 - fuller `P_auth` authorization delta
+- direct runtime integration for temporal continuity where required
 - better hardlink / junction / ADS mechanism labels
 - stronger mtime/ctime replay semantics
 - multi-auditor voting and separated verdict panels
