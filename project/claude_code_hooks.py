@@ -30,6 +30,7 @@ SOURCE_ADAPTER = "claude_code_hook"
 DEFAULT_ACTOR_ID = "claude_code"
 STATE_DIR_NAME = "pub_xray_state"
 LOG_FILE_NAME = "pub_claude_hooks.jsonl"
+GATE_SWITCH_FILE_NAME = "pub_gate_switch.json"
 STATE_SCHEMA_VERSION = "claude_code_pub_xray_state:v0"
 DEFAULT_STATE_TTL_SECONDS = 3600
 SENSITIVE_TOOL_INPUT_KEYS = frozenset(
@@ -114,8 +115,11 @@ def run_pretool_admission(
     handle = open_xray_transport(proposal)
     state_path = _state_path(cid, event, env)
     decision = _audit_action(action)
+    gate_off = _gate_switch_off(event, env)
     output = None
-    if decision.disposition in BLOCKING_DISPOSITIONS:
+    if decision.disposition is EvidenceDisposition.HOLD:
+        output = _pretool_hold_output(decision.reason_code)
+    elif decision.disposition in BLOCKING_DISPOSITIONS:
         output = _pretool_deny_output(decision.disposition, decision.reason_code)
 
     # Unmodelled capability => review (never a silent allow). A spatial block
@@ -123,6 +127,12 @@ def run_pretool_admission(
     # unknown tool through for lack of any inferable side effect.
     if output is None and not _is_recognized_tool(action.tool_name):
         output = _pretool_review_output("UNKNOWN_CAPABILITY", action.tool_name)
+
+    # The operator switch only seals the exit, never the eyes: with the gate
+    # off the audit above still ran and the ledger row below is still written,
+    # so the trail survives a disarmed gate. Nothing is blocked or escalated.
+    if gate_off:
+        output = None
 
     _write_json(
         state_path,
@@ -149,6 +159,7 @@ def run_pretool_admission(
             "action_id": action.action_id,
             "disposition": decision.disposition.value,
             "reason_code": decision.reason_code,
+            "gate_switch": "off" if gate_off else "on",
             "blocked": output is not None,
             "target_paths": tuple(action.target_paths),
             "expected_side_effects": tuple(
@@ -180,8 +191,11 @@ def run_posttool_autopsy(
     event = _load_event(raw)
     cid = _event_correlation_id(event)
     state_path = _state_path(cid, event, env)
+    # Same exit-only switch as admission: autopsy and ledger always run, the
+    # additionalContext chatter is the only thing a disarmed gate suppresses.
+    silenced = _gate_switch_off(event, env)
     if not state_path.exists():
-        output = _posttool_missing_output("missing_enter_state")
+        output = None if silenced else _posttool_missing_output("missing_enter_state")
         _append_log(
             env,
             {
@@ -203,7 +217,7 @@ def run_posttool_autopsy(
 
     state = json.loads(state_path.read_text(encoding="utf-8"))
     if _state_expired(state):
-        output = _posttool_missing_output("expired_enter_state")
+        output = None if silenced else _posttool_missing_output("expired_enter_state")
         _append_log(
             env,
             {
@@ -226,7 +240,7 @@ def run_posttool_autopsy(
     handle = handle_from_state(state)
     seal = close_xray_transport(handle, proposal)
     review = review_from_frame(handle.enter_frame, seal=seal)
-    output = _posttool_context_output(seal, review)
+    output = None if silenced else _posttool_context_output(seal, review)
 
     autopsy_path = _autopsy_path(cid, env)
     _write_json(
@@ -480,6 +494,23 @@ def _pretool_deny_output(
     }
 
 
+def _pretool_hold_output(reason_code: str) -> dict[str, Any]:
+    # HOLD is default-deny-with-appeal: the proposal is suspicious for lack of
+    # evidence, not proven hostile, and the operator is the appeal court.
+    # "ask" routes it to Claude Code's native allow/deny prompt instead of a
+    # dead-end deny. KILL/QUARANTINE/REJECT remain hard denies with no appeal.
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "ask",
+            "permissionDecisionReason": (
+                "Protect U Back held this action for operator review: "
+                f"HOLD {reason_code}. Allow runs it once; deny blocks it."
+            ),
+        }
+    }
+
+
 def _is_recognized_tool(tool_name: str) -> bool:
     return str(tool_name).strip() in RECOGNIZED_TOOLS
 
@@ -696,7 +727,14 @@ def _audit_surface_present(command_text: str, targets: Sequence[str]) -> bool:
     haystack = " ".join((command_text, *targets)).lower()
     return any(
         token in haystack
-        for token in (".phi/", ".phi\\", "ot_gate.py", "parallel_audit.py", "protect_scan.py")
+        for token in (
+            ".phi/",
+            ".phi\\",
+            "ot_gate.py",
+            "parallel_audit.py",
+            "protect_scan.py",
+            GATE_SWITCH_FILE_NAME,
+        )
     )
 
 
@@ -869,6 +907,26 @@ def _sandbox_evidence_from_env(env: Mapping[str, str]) -> dict[str, Any]:
     }
 
 
+def _gate_switch_off(event: Mapping[str, Any], env: Mapping[str, str]) -> bool:
+    # Operator kill switch, read fresh on every hook invocation: flipping the
+    # file takes effect on the next tool call, no session restart. Fail
+    # closed -- a missing, unreadable, or malformed switch keeps the gate
+    # armed; only a literal {"enabled": false} disarms it.
+    switch_path = Path(_event_cwd(event, env)) / ".claude" / GATE_SWITCH_FILE_NAME
+    try:
+        payload = json.loads(switch_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return isinstance(payload, Mapping) and payload.get("enabled") is False
+
+
+def _gate_switch_off_from_raw(raw: str) -> bool:
+    try:
+        return _gate_switch_off(_load_event(raw), os.environ)
+    except Exception:
+        return False
+
+
 def _state_path(cid: str, event: Mapping[str, Any], env: Mapping[str, str]) -> Path:
     state_dir = env.get("PUB_CLAUDE_HOOK_STATE_DIR")
     if state_dir:
@@ -952,11 +1010,16 @@ def write_hook_output(output: Mapping[str, Any] | None) -> None:
 
 
 def main_pretool() -> int:
+    raw = sys.stdin.read()
     try:
-        result = run_pretool_admission(sys.stdin.read())
+        result = run_pretool_admission(raw)
         write_hook_output(result.output)
         return 0
     except Exception as exc:
+        # The switch is the operator's escape hatch even when the gate itself
+        # is broken: with the gate off, a crashing hook must not fail closed.
+        if _gate_switch_off_from_raw(raw):
+            return 0
         write_hook_output(
             {
                 "hookSpecificOutput": {

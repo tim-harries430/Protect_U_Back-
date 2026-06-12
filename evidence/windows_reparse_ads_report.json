@@ -1,0 +1,368 @@
+{
+  "product": "Protect U Back",
+  "evidence_id": "windows_reparse_ads_v1",
+  "run_date": "2026-06-12",
+  "filesystem": "NTFS (C:)",
+  "interface_version": "access_equation_v0",
+  "cases": [
+    {
+      "case_id": "WIN-REPARSE-JUNCTION-001",
+      "vector": "ntfs_directory_junction_reparse_out_of_boundary",
+      "description": "Directory junction inside the skill root that reparses to a sibling tree outside the boundary, disguised as an ordinary folder.",
+      "raw_os_disguise": {
+        "lstat_object_type": "directory",
+        "is_symlink_by_islink": false
+      },
+      "pub_now_observes": {
+        "object_type": "reparse_point",
+        "reparse_tag": 2684354563,
+        "redirect_target": "\\\\?\\C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary",
+        "resolved_path": "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary",
+        "escaped_refs": [
+          "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary"
+        ]
+      },
+      "expected_action": "HOLD",
+      "pub_verdict": {
+        "minimum_action": "HOLD",
+        "state": "RESIDUAL",
+        "residual_type": "CONTAINER_ESCAPE",
+        "component": "div_b_j",
+        "mechanism": "boundary_escape"
+      },
+      "intercepted": true,
+      "full_result": {
+        "equation": "omega_access(p) = o_apply(delta_b_x + div_b_j - u_auth(p))",
+        "state": "RESIDUAL",
+        "process_id": "pub-junction-escape",
+        "equation_applied": true,
+        "minimum_action": "HOLD",
+        "requires_hold": true,
+        "terms": {
+          "equation": "omega_access(p) = o_apply(delta_b_x + div_b_j - u_auth(p))",
+          "delta_b_x": [],
+          "div_b_j": [
+            {
+              "state": "RESIDUAL",
+              "component": "div_b_j",
+              "residual_type": "CONTAINER_ESCAPE",
+              "subject": "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary",
+              "severity": 1.0,
+              "explained_by": null,
+              "requires_action": true,
+              "evidence": {
+                "boundary_id": "filesystem_boundary_v0",
+                "root": "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\skill_root",
+                "escaped_refs": [
+                  "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary"
+                ],
+                "distance": {
+                  "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary": 1.0
+                }
+              },
+              "details": {
+                "mechanism": "boundary_escape",
+                "minimum_action": "HOLD"
+              },
+              "residual_hash": "2db9c428b8fb0f4639fdd095aa7ecfa8b2a1d28288ffaf3a1d9de1dab7dd7e2a"
+            }
+          ],
+          "u_auth_explanations": [],
+          "observation_residuals": [],
+          "observation": {
+            "state": "COMPLETE",
+            "observed_fields": [
+              "state_hash",
+              "metadata_vector_hash",
+              "resolved_path",
+              "file_id",
+              "nlink",
+              "boundary"
+            ],
+            "missing_fields": [],
+            "blind_spots": [],
+            "confidence": 1.0,
+            "requires_hold": false,
+            "details": {}
+          },
+          "details": {
+            "operator": "omega_access_terms_v0",
+            "delta_b_x_count": 0,
+            "div_b_j_count": 1,
+            "auth_mode": "process_auth_v0"
+          }
+        },
+        "residuals": [
+          {
+            "state": "RESIDUAL",
+            "component": "div_b_j",
+            "residual_type": "CONTAINER_ESCAPE",
+            "subject": "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary",
+            "severity": 1.0,
+            "explained_by": null,
+            "requires_action": true,
+            "evidence": {
+              "boundary_id": "filesystem_boundary_v0",
+              "root": "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\skill_root",
+              "escaped_refs": [
+                "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary"
+              ],
+              "distance": {
+                "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_escape\\outside_boundary": 1.0
+              }
+            },
+            "details": {
+              "mechanism": "boundary_escape",
+              "minimum_action": "HOLD"
+            },
+            "residual_hash": "2db9c428b8fb0f4639fdd095aa7ecfa8b2a1d28288ffaf3a1d9de1dab7dd7e2a"
+          }
+        ],
+        "explained_residuals": [],
+        "hold_reasons": [
+          "CONTAINER_ESCAPE"
+        ],
+        "details": {
+          "operator": "o_apply_access_switch_v0",
+          "observation_state": "COMPLETE",
+          "net_residual_evaluated": true,
+          "authority": "witness_only_no_execution_grant"
+        }
+      }
+    },
+    {
+      "case_id": "WIN-REPARSE-JUNCTION-002",
+      "vector": "ntfs_directory_junction_reparse_into_boundary",
+      "description": "Junction whose target stays inside the boundary (a sensitive ledger store). No escape fires, so resolve-landing-point says nothing — this is the exact blind spot now closed.",
+      "raw_os_disguise": {
+        "lstat_object_type": "directory",
+        "is_symlink_by_islink": false
+      },
+      "pub_now_observes": {
+        "object_type": "reparse_point",
+        "reparse_tag": 2684354563,
+        "redirect_target": "\\\\?\\C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_inbound\\skill_root\\ledger_store",
+        "escaped_refs": [],
+        "contained_refs": [
+          "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\j_inbound\\skill_root\\ledger_store"
+        ]
+      },
+      "expected_action": "NAME THE REDIRECT (no escape, but never a plain directory)",
+      "pub_verdict": {
+        "object_named_as_reparse": true,
+        "redirect_target_recorded": true,
+        "reparse_tag_recorded": true
+      },
+      "intercepted": true
+    },
+    {
+      "case_id": "WIN-ADS-FILEID-001",
+      "vector": "ntfs_alternate_data_stream_file_id_collision",
+      "description": "Payload written into report.md:payload. The stream shares the host's NTFS record (device:inode), so file_id collides with the benign host file.",
+      "raw_os_disguise": {
+        "host_file_id": "5224858787565622666:6192449488506539",
+        "stream_file_id": "5224858787565622666:6192449488506539",
+        "file_id_collision": true
+      },
+      "pub_now_observes": {
+        "host_size": 27,
+        "stream_size": 37,
+        "host_metadata_sha256": "sha256:3402b0bb8337bb0bdfb6e22fe5fbf38c6fc214972e2111936c10c0ea2ae06210",
+        "stream_metadata_sha256": "sha256:9b53cdbaf13b632e4f456e38f49b904c3178a57b48006def22793b5f40201425",
+        "both_contained_in_boundary": true
+      },
+      "expected_action": "DISCRIMINATE (never collapse stream identity onto host file_id)",
+      "pub_verdict": {
+        "decision_basis": "metadata_vector_hash separates payload stream from host body; file_id treated as a signal, never as identity proof",
+        "identity_collapsed_onto_file_id": false
+      },
+      "intercepted": true
+    },
+    {
+      "case_id": "WIN-ADS-ENUM-001",
+      "vector": "ntfs_alternate_data_stream_enumeration_blindspot",
+      "description": "Payload stream exists and is non-empty, but a directory walk of the boundary never lists it, so any enumerate-the-files sweep is blind to it.",
+      "raw_os_disguise": {
+        "stream_exists": true,
+        "stream_size": 37,
+        "boundary_listing": [
+          "report.md"
+        ],
+        "stream_visible_in_listing": false
+      },
+      "pub_now_observes": {
+        "blind_spot": "ntfs_alternate_data_stream_unenumerated",
+        "missing_field": "enumerated_stream_inventory",
+        "confidence": 0.2
+      },
+      "expected_action": "HOLD",
+      "pub_verdict": {
+        "minimum_action": "HOLD",
+        "state": "INCOMPLETE_HOLD",
+        "requires_hold": true,
+        "residual_type": "OBSERVATION_BLINDNESS",
+        "component": "o_apply",
+        "mechanism": "observation_blindness"
+      },
+      "intercepted": true,
+      "full_result": {
+        "equation": "omega_access(p) = o_apply(delta_b_x + div_b_j - u_auth(p))",
+        "state": "INCOMPLETE_HOLD",
+        "process_id": "pub-ads-blindness",
+        "equation_applied": true,
+        "minimum_action": "HOLD",
+        "requires_hold": true,
+        "terms": {
+          "equation": "omega_access(p) = o_apply(delta_b_x + div_b_j - u_auth(p))",
+          "delta_b_x": [],
+          "div_b_j": [],
+          "u_auth_explanations": [],
+          "observation_residuals": [
+            {
+              "state": "INCOMPLETE",
+              "component": "o_apply",
+              "residual_type": "OBSERVATION_BLINDNESS",
+              "subject": "observation",
+              "severity": 0.75,
+              "explained_by": null,
+              "requires_action": true,
+              "evidence": {
+                "observation_state": "PARTIAL",
+                "observed_fields": [
+                  "boundary_root",
+                  "byte_size",
+                  "device_id",
+                  "exists",
+                  "file_id",
+                  "inode",
+                  "metadata_vector_hash",
+                  "mode",
+                  "mtime_ns",
+                  "nlink",
+                  "object_type",
+                  "os_ctime_ns",
+                  "os_ctime_semantics",
+                  "raw_path",
+                  "resolved_path",
+                  "sample_profile",
+                  "schema"
+                ],
+                "missing_fields": [
+                  "enumerated_stream_inventory"
+                ],
+                "blind_spots": [
+                  "ntfs_alternate_data_stream_unenumerated"
+                ],
+                "confidence": 0.2
+              },
+              "details": {
+                "requires_hold": true,
+                "minimum_action": "HOLD",
+                "mechanism": "observation_blindness"
+              },
+              "residual_hash": "3ccd6509bdd2b2220d89ff24ed175cc3b206f7a104f9620d09de1a2863b1a1e5"
+            }
+          ],
+          "observation": {
+            "state": "PARTIAL",
+            "observed_fields": [
+              "boundary_root",
+              "byte_size",
+              "device_id",
+              "exists",
+              "file_id",
+              "inode",
+              "metadata_vector_hash",
+              "mode",
+              "mtime_ns",
+              "nlink",
+              "object_type",
+              "os_ctime_ns",
+              "os_ctime_semantics",
+              "raw_path",
+              "resolved_path",
+              "sample_profile",
+              "schema"
+            ],
+            "missing_fields": [
+              "enumerated_stream_inventory"
+            ],
+            "blind_spots": [
+              "ntfs_alternate_data_stream_unenumerated"
+            ],
+            "confidence": 0.2,
+            "requires_hold": true,
+            "details": {
+              "mechanism": "ads_enumeration_blindness",
+              "host_path": "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\ads_blind\\skill_root\\report.md",
+              "stream_ref": "C:\\dev\\sp\\.pytest_tmp\\evidence_zone\\ads_blind\\skill_root\\report.md:payload"
+            }
+          },
+          "details": {
+            "operator": "omega_access_terms_v0",
+            "delta_b_x_count": 0,
+            "div_b_j_count": 0,
+            "auth_mode": "process_auth_v0"
+          }
+        },
+        "residuals": [
+          {
+            "state": "INCOMPLETE",
+            "component": "o_apply",
+            "residual_type": "OBSERVATION_BLINDNESS",
+            "subject": "observation",
+            "severity": 0.75,
+            "explained_by": null,
+            "requires_action": true,
+            "evidence": {
+              "observation_state": "PARTIAL",
+              "observed_fields": [
+                "boundary_root",
+                "byte_size",
+                "device_id",
+                "exists",
+                "file_id",
+                "inode",
+                "metadata_vector_hash",
+                "mode",
+                "mtime_ns",
+                "nlink",
+                "object_type",
+                "os_ctime_ns",
+                "os_ctime_semantics",
+                "raw_path",
+                "resolved_path",
+                "sample_profile",
+                "schema"
+              ],
+              "missing_fields": [
+                "enumerated_stream_inventory"
+              ],
+              "blind_spots": [
+                "ntfs_alternate_data_stream_unenumerated"
+              ],
+              "confidence": 0.2
+            },
+            "details": {
+              "requires_hold": true,
+              "minimum_action": "HOLD",
+              "mechanism": "observation_blindness"
+            },
+            "residual_hash": "3ccd6509bdd2b2220d89ff24ed175cc3b206f7a104f9620d09de1a2863b1a1e5"
+          }
+        ],
+        "explained_residuals": [],
+        "hold_reasons": [
+          "OBSERVATION_REQUIRES_HOLD",
+          "OBSERVATION_BLINDNESS"
+        ],
+        "details": {
+          "operator": "o_apply_access_switch_v0",
+          "observation_state": "PARTIAL",
+          "net_residual_evaluated": false,
+          "authority": "witness_only_no_execution_grant"
+        }
+      }
+    }
+  ]
+}

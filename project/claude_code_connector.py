@@ -17,6 +17,12 @@ TOOL_MATCHER = "*"
 PRETOOL_SCRIPT = "pretool_admission.py"
 POSTTOOL_SCRIPT = "posttool_autopsy.py"
 MANAGED_SCRIPTS = (PRETOOL_SCRIPT, POSTTOOL_SCRIPT)
+# Shared contract with claude_code_hooks.GATE_SWITCH_FILE_NAME: the hook reads
+# this file fresh on every invocation, so flipping it here takes effect on the
+# next tool call in every live session -- no restart, unlike connect/disconnect
+# whose registration is cached per session.
+GATE_SWITCH_FILE = "pub_gate_switch.json"
+GATE_SWITCH_SCHEMA_VERSION = "pub_gate_switch:v0"
 
 
 class ClaudeCodeConnectorError(RuntimeError):
@@ -35,11 +41,14 @@ def status_claude_code(
     commands = _managed_commands(protect_root=protect_root, python_bin=python_bin)
     pretool_hook = _has_hook_command(settings, "PreToolUse", commands["PreToolUse"])
     posttool_hook = _has_hook_command(settings, "PostToolUse", commands["PostToolUse"])
+    switch_path = _gate_switch_path(project_root)
     return {
         "claude_project": str(project_root),
         "settings_path": str(settings_path),
         "settings_exists": settings_path.exists(),
         "connected": pretool_hook and posttool_hook,
+        "gate_switch": "off" if _gate_switch_disarmed(switch_path) else "on",
+        "gate_switch_path": str(switch_path),
         "pretool_hook": pretool_hook,
         "posttool_hook": posttool_hook,
         "managed_hook_count": _managed_hook_count(settings),
@@ -104,6 +113,36 @@ def disconnect_claude_code(claude_project: str | Path | None = None) -> dict[str
     return result
 
 
+def gate_claude_code(
+    claude_project: str | Path | None = None,
+    *,
+    enabled: bool,
+) -> dict[str, Any]:
+    project_root = find_claude_project(claude_project)
+    switch_path = _gate_switch_path(project_root)
+    switch_path.parent.mkdir(parents=True, exist_ok=True)
+    switch_path.write_text(
+        json.dumps(
+            {"schema_version": GATE_SWITCH_SCHEMA_VERSION, "enabled": enabled},
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="",
+    )
+    result = status_claude_code(project_root)
+    result["note"] = (
+        "Gate ON: blocking re-armed. Effective on the next tool call in every "
+        "live session of this project; no restart needed."
+        if enabled
+        else "Gate OFF: nothing is blocked or escalated, but hooks stay "
+        "registered and the audit trail keeps recording. Effective on the "
+        "next tool call; no restart needed. Re-arm with 'on'; remove hooks "
+        "entirely with 'disconnect'."
+    )
+    return result
+
+
 def verify_claude_code(
     claude_project: str | Path | None = None,
     *,
@@ -163,6 +202,20 @@ def find_claude_project(claude_project: str | Path | None = None) -> Path:
 
 def _settings_path(project_root: Path) -> Path:
     return project_root / ".claude" / "settings.local.json"
+
+
+def _gate_switch_path(project_root: Path) -> Path:
+    return project_root / ".claude" / GATE_SWITCH_FILE
+
+
+def _gate_switch_disarmed(switch_path: Path) -> bool:
+    # Mirror of claude_code_hooks._gate_switch_off, fail closed the same way:
+    # missing, unreadable, or malformed reads as armed.
+    try:
+        payload = json.loads(switch_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return isinstance(payload, dict) and payload.get("enabled") is False
 
 
 def _read_settings(settings_path: Path) -> dict[str, Any]:
@@ -348,7 +401,7 @@ def _sha256(path: Path) -> str:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Connect Protect U Back to Claude Code hooks.")
-    parser.add_argument("command", choices=("status", "connect", "disconnect", "verify"))
+    parser.add_argument("command", choices=("status", "connect", "disconnect", "verify", "on", "off"))
     parser.add_argument("--claude-project", default=".")
     parser.add_argument("--protect-root")
     parser.add_argument("--python-bin", default="python3")
@@ -367,6 +420,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             python_bin=args.python_bin,
         ),
         "disconnect": lambda: disconnect_claude_code(args.claude_project),
+        "on": lambda: gate_claude_code(args.claude_project, enabled=True),
+        "off": lambda: gate_claude_code(args.claude_project, enabled=False),
         "verify": lambda: verify_claude_code(
             args.claude_project,
             protect_root=args.protect_root,

@@ -46,6 +46,7 @@ FULL_METADATA_FIELDS = (
     "device_id",
     "nlink",
     "symlink_target",
+    "reparse_tag",
     "mtime_ns",
     "os_ctime_ns",
     "os_ctime_semantics",
@@ -93,6 +94,7 @@ PROFILE_FIELDS: dict[MetadataSampleProfile, tuple[str, ...]] = {
         "resolved_path",
         "boundary_root",
         "symlink_target",
+        "reparse_tag",
     ),
     MetadataSampleProfile.ALIAS_SLICE: (
         "schema",
@@ -218,11 +220,13 @@ def sample_xray_object_state(
     stat_result = _safe_lstat(candidate)
     exists = stat_result is not None
     object_type = _object_type(candidate, stat_result)
+    is_redirect = object_type in ("symlink", "reparse_point")
     symlink_target = (
         _safe_readlink(candidate)
-        if object_type == "symlink" and "symlink_target" in sampled_fields
+        if is_redirect and "symlink_target" in sampled_fields
         else None
     )
+    reparse_tag = _reparse_tag(stat_result) if "reparse_tag" in sampled_fields else None
     os_ctime_semantics = _os_ctime_semantics()
 
     size = (
@@ -252,6 +256,7 @@ def sample_xray_object_state(
         device_id=device_id,
         nlink=nlink,
         symlink_target=symlink_target,
+        reparse_tag=reparse_tag,
         mtime_ns=mtime_ns,
         os_ctime_ns=ctime_ns,
         os_ctime_semantics=os_ctime_semantics,
@@ -274,6 +279,7 @@ def sample_xray_object_state(
             nlink=nlink,
             ctime_ns=ctime_ns,
             symlink_target=symlink_target,
+            object_type_is_redirect=is_redirect,
             sampled_fields=sampled_fields,
         ),
         details={
@@ -305,6 +311,7 @@ def sample_xray_object_state(
         mtime_ns=mtime_ns,
         ctime_ns=ctime_ns,
         symlink_target=symlink_target,
+        reparse_tag=reparse_tag,
         mode=mode,
         details={
             "byte_size": size,
@@ -406,11 +413,27 @@ def _object_type(path: Path, stat_result: os.stat_result | None) -> str:
     mode = stat_result.st_mode
     if stat.S_ISLNK(mode):
         return "symlink"
+    # An NT reparse point (junction / mount point) lstats as a plain directory or
+    # file and reports S_ISLNK false, yet it forwards to another resource. Name it
+    # for what it is so no downstream check mistakes the disguise for the target.
+    if _reparse_tag(stat_result) is not None:
+        return "reparse_point"
     if stat.S_ISREG(mode):
         return "file"
     if stat.S_ISDIR(mode):
         return "directory"
     return "other"
+
+
+def _reparse_tag(stat_result: os.stat_result | None) -> int | None:
+    if stat_result is None:
+        return None
+    tag = getattr(stat_result, "st_reparse_tag", 0)
+    try:
+        tag = int(tag)
+    except (TypeError, ValueError):
+        return None
+    return tag or None
 
 
 def _safe_readlink(path: Path) -> str | None:
@@ -466,6 +489,7 @@ def _metadata_vector(
     device_id: str | None,
     nlink: int | None,
     symlink_target: str | None,
+    reparse_tag: int | None,
     mtime_ns: int | None,
     os_ctime_ns: int | None,
     os_ctime_semantics: str,
@@ -485,6 +509,7 @@ def _metadata_vector(
         "device_id": device_id,
         "nlink": nlink,
         "symlink_target": symlink_target,
+        "reparse_tag": reparse_tag,
         "mtime_ns": mtime_ns,
         "os_ctime_ns": os_ctime_ns,
         "os_ctime_semantics": os_ctime_semantics,
@@ -507,6 +532,7 @@ def _blind_spots(
     nlink: int | None,
     ctime_ns: int | None,
     symlink_target: str | None,
+    object_type_is_redirect: bool,
     sampled_fields: tuple[str, ...],
 ) -> tuple[str, ...]:
     spots: list[str] = []
@@ -519,8 +545,12 @@ def _blind_spots(
         spots.append("nlink_unavailable")
     if "os_ctime_ns" in sampled and ctime_ns is None:
         spots.append("os_ctime_unavailable")
-    if object_type == "symlink" and "symlink_target" in sampled and symlink_target is None:
-        spots.append("symlink_target_unavailable")
+    if object_type_is_redirect and "symlink_target" in sampled and symlink_target is None:
+        spots.append(
+            "reparse_target_unavailable"
+            if object_type == "reparse_point"
+            else "symlink_target_unavailable"
+        )
     return tuple(spots)
 
 

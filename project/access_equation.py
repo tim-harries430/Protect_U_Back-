@@ -58,6 +58,7 @@ class XrayObjectState:
     mtime_ns: int | None = None
     ctime_ns: int | None = None
     symlink_target: str | None = None
+    reparse_tag: int | None = None
     mode: str | None = None
     owner: str | None = None
     details: Mapping[str, Any] = field(default_factory=dict)
@@ -84,6 +85,7 @@ class XrayObjectState:
             "mtime_ns": self.mtime_ns,
             "ctime_ns": self.ctime_ns,
             "symlink_target": self.symlink_target,
+            "reparse_tag": self.reparse_tag,
             "mode": self.mode,
             "owner": self.owner,
             "details": dict(self.details),
@@ -933,8 +935,15 @@ def _object_delta_residual_type(
     return "OBJECT_SUBSTITUTION", "resource_identity_delta"
 
 
+# A path that redirects elsewhere: a POSIX symlink or an NT reparse point
+# (junction / mount point). Both forward one name to another resource, so both
+# carry a pointer surface — file type alone (a junction lstats as a directory)
+# must never decide this.
+_REDIRECT_OBJECT_TYPES = frozenset({"symlink", "reparse_point"})
+
+
 def _has_pointer_delta(before: XrayObjectState, after: XrayObjectState) -> bool:
-    if before.object_type == "symlink" or after.object_type == "symlink":
+    if before.object_type in _REDIRECT_OBJECT_TYPES or after.object_type in _REDIRECT_OBJECT_TYPES:
         return True
     if before.symlink_target or after.symlink_target:
         return before.symlink_target != after.symlink_target
@@ -948,7 +957,7 @@ def _has_pointer_delta(before: XrayObjectState, after: XrayObjectState) -> bool:
 
 
 def _state_has_pointer_surface(state: XrayObjectState) -> bool:
-    return bool(state.object_type == "symlink" or state.symlink_target)
+    return bool(state.object_type in _REDIRECT_OBJECT_TYPES or state.symlink_target)
 
 
 def _skill_identity(state: XrayObjectState) -> tuple[str, ...]:
