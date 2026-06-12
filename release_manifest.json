@@ -60,6 +60,8 @@
     "evidence/tree.txt",
     "evidence/ubuntu_io_evidence_2026-05-23/UBUNTU_IO_SHA256SUMS.txt",
     "evidence/ubuntu_io_evidence_2026-05-23/dummy_after_test.txt",
+    "evidence/windows_reparse_ads_report.json",
+    "evidence/windows_reparse_ads_report.md",
     "evidence/working_directory.txt",
     "project/access_equation.py",
     "project/access_field.py",
@@ -132,5 +134,5 @@
   "no_network": true,
   "no_telemetry": true,
   "offline": true,
-  "release_name": "ProtectUBack_early_access_0.14_local"
+  "release_name": "ProtectUBack_early_access_0.16_local"
 }
