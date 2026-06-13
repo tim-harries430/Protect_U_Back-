@@ -56,6 +56,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "claude-code":
         return run_claude_code_connector(args)
 
+    if args.command == "codex":
+        return run_codex_connector(args)
+
     return run_menu()
 
 
@@ -131,6 +134,26 @@ def build_parser() -> argparse.ArgumentParser:
         )
         item.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
 
+    codex = subparsers.add_parser("codex", help="Manage the local Codex shell guard connector.")
+    codex_subparsers = codex.add_subparsers(dest="codex_command", required=True)
+    for command in ("status", "connect", "disconnect", "verify"):
+        item = codex_subparsers.add_parser(command)
+        item.add_argument(
+            "--codex-project",
+            default=".",
+            help="Codex project root that will receive the .pub_codex_guard launcher.",
+        )
+        item.add_argument(
+            "--protect-root",
+            help="Protect U Back root as seen by Codex, for example /mnt/c/dev/sp.",
+        )
+        item.add_argument(
+            "--python-bin",
+            default="python3",
+            help="Python executable as seen by Codex.",
+        )
+        item.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
+
     return parser
 
 
@@ -149,6 +172,7 @@ def run_menu() -> int:
         print("7. Connect OpenClaw")
         print("8. Connect Kimi CLI")
         print("9. Connect Claude Code")
+        print("10. Connect Codex CLI")
         print("0. Exit")
         choice = input("> ").strip()
 
@@ -174,6 +198,8 @@ def run_menu() -> int:
             return_code = run_kimi_menu()
         elif choice == "9":
             return_code = run_claude_code_menu()
+        elif choice == "10":
+            return_code = run_codex_menu()
         elif choice == "0":
             return 0
         else:
@@ -275,6 +301,32 @@ def run_claude_code_menu() -> int:
         argparse.Namespace(
             claude_code_command=command,
             claude_project=project or ".",
+            protect_root=protect_root or None,
+            python_bin=python_bin or "python3",
+            json=False,
+        )
+    )
+
+
+def run_codex_menu() -> int:
+    print()
+    print("Connect Codex CLI")
+    print("1. Status")
+    print("2. Connect Codex CLI")
+    print("3. Verify")
+    print("4. Disconnect")
+    choice = input("> ").strip()
+    command = {"1": "status", "2": "connect", "3": "verify", "4": "disconnect"}.get(choice)
+    if command is None:
+        print("Unknown selection.")
+        return 1
+    project = input("Codex project root (blank = current directory): ").strip().strip('"')
+    protect_root = input("Protect U Back root visible to Codex (blank = launcher root): ").strip().strip('"')
+    python_bin = input("Python command visible to Codex (blank = python3): ").strip()
+    return run_codex_connector(
+        argparse.Namespace(
+            codex_command=command,
+            codex_project=project or ".",
             protect_root=protect_root or None,
             python_bin=python_bin or "python3",
             json=False,
@@ -420,6 +472,44 @@ def run_claude_code_connector(args: argparse.Namespace) -> int:
         result = operations[args.claude_code_command]()
     except Exception as exc:
         print(f"Claude Code connector error: {exc}", file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    else:
+        print_connector_result(result)
+    return 0
+
+
+def run_codex_connector(args: argparse.Namespace) -> int:
+    from codex_connector import (
+        connect_codex,
+        disconnect_codex,
+        status_codex,
+        verify_codex,
+    )
+
+    operations = {
+        "status": lambda: status_codex(
+            args.codex_project,
+            protect_root=args.protect_root,
+            python_bin=args.python_bin,
+        ),
+        "connect": lambda: connect_codex(
+            args.codex_project,
+            protect_root=args.protect_root or CODE_ROOT,
+            python_bin=args.python_bin,
+        ),
+        "disconnect": lambda: disconnect_codex(args.codex_project),
+        "verify": lambda: verify_codex(
+            args.codex_project,
+            protect_root=args.protect_root or CODE_ROOT,
+            python_bin=args.python_bin,
+        ),
+    }
+    try:
+        result = operations[args.codex_command]()
+    except Exception as exc:
+        print(f"Codex connector error: {exc}", file=sys.stderr)
         return 1
     if args.json:
         print(json.dumps(result, indent=2, sort_keys=True))

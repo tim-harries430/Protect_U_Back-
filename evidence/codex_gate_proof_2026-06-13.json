@@ -1,0 +1,19 @@
+{
+  "checks": {
+    "no_foreign_adapter": true,
+    "pre_decides_before_exec": true,
+    "probe_gated": true,
+    "pub_at_the_door": true
+  },
+  "foreign_adapters": [],
+  "gate_proof": "pub_codex_shell_gate",
+  "generated_at": 1781346798.528282,
+  "log_path": ".pub_codex_guard/logs/pub_codex_guard.jsonl",
+  "log_sha256": "116f1db85876d6ea541d23184dafa0644a8484cd155a2c838489f8f55d493231",
+  "passed": true,
+  "post_rows": 17,
+  "pre_rows": 18,
+  "probe": "pwd",
+  "probe_pre_rows": 1,
+  "total_rows": 35
+}

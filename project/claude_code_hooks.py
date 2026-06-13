@@ -15,8 +15,9 @@ from typing import Any, Sequence
 from adapter_wall import ActionDomain, ActionEnvelope, AdapterActionType
 from harness_adapter import infer_action_domain, infer_action_type, infer_declared_scope
 from llm_channel import ChannelType
-from ot_gate import CommandProposal, DeclaredScope, SideEffect
+from ot_gate import CommandProposal, DeclaredScope, JudgeVote, OTPolicy, SideEffect
 from parallel_audit import EvidenceDisposition
+from temporal_continuity import TemporalContinuityLedger, TemporalTestimony
 from phi_registry import ActorType, PhiRegistry
 from protect_scan import confirm_protect_scan, default_protect_scan_profile
 from transition_xray import TransitionXrayFrame, XrayPhase, XrayPiece
@@ -29,6 +30,7 @@ HOOK_ID = "pub_claude_code_hooks:v0"
 SOURCE_ADAPTER = "claude_code_hook"
 DEFAULT_ACTOR_ID = "claude_code"
 STATE_DIR_NAME = "pub_xray_state"
+TEMPORAL_STATE_DIR_NAME = "pub_temporal_state"
 LOG_FILE_NAME = "pub_claude_hooks.jsonl"
 GATE_SWITCH_FILE_NAME = "pub_gate_switch.json"
 STATE_SCHEMA_VERSION = "claude_code_pub_xray_state:v0"
@@ -84,6 +86,8 @@ class ClaudeHookAdmission:
     reason_code: str
     output: Mapping[str, Any] | None
     state_path: Path
+    temporal_vote: str = "PASS"
+    temporal_reason_code: str = "TEMPORAL_CONTINUOUS"
 
     @property
     def blocked(self) -> bool:
@@ -114,6 +118,7 @@ def run_pretool_admission(
 
     handle = open_xray_transport(proposal)
     state_path = _state_path(cid, event, env)
+    project_root = _project_root_for_action(action)
     decision = _audit_action(action)
     gate_off = _gate_switch_off(event, env)
     output = None
@@ -127,6 +132,19 @@ def run_pretool_admission(
     # unknown tool through for lack of any inferable side effect.
     if output is None and not _is_recognized_tool(action.tool_name):
         output = _pretool_review_output("UNKNOWN_CAPABILITY", action.tool_name)
+
+    # The spatial gate above judges THIS proposal in isolation. The temporal
+    # accumulator judges the SEQUENCE: a session that drifts off its stated
+    # task -- read a secret between two look-alike downloads, then egress --
+    # is invisible to any single-frame check. Run it always (even under a
+    # block, even gated off) so the ledger remembers; it can only TIGHTEN the
+    # verdict, never loosen it.
+    temporal = _run_temporal(proposal, project_root, event, env)
+    candidate = _temporal_output(temporal)
+    if _decision_rank(candidate) > _decision_rank(output):
+        output = candidate
+    temporal_vote = temporal.vote.value if temporal is not None else "PASS"
+    temporal_reason_code = temporal.reason_code if temporal is not None else "TEMPORAL_CONTINUOUS"
 
     # The operator switch only seals the exit, never the eyes: with the gate
     # off the audit above still ran and the ledger row below is still written,
@@ -159,6 +177,8 @@ def run_pretool_admission(
             "action_id": action.action_id,
             "disposition": decision.disposition.value,
             "reason_code": decision.reason_code,
+            "temporal_vote": temporal_vote,
+            "temporal_reason_code": temporal_reason_code,
             "gate_switch": "off" if gate_off else "on",
             "blocked": output is not None,
             "target_paths": tuple(action.target_paths),
@@ -179,6 +199,8 @@ def run_pretool_admission(
         reason_code=decision.reason_code,
         output=output,
         state_path=state_path,
+        temporal_vote=temporal_vote,
+        temporal_reason_code=temporal_reason_code,
     )
 
 
@@ -476,6 +498,74 @@ def _audit_action(action: ActionEnvelope):
         project_root=project_root,
         protect_profile=profile,
     )
+
+
+def _run_temporal(
+    proposal: CommandProposal,
+    project_root: str,
+    event: Mapping[str, Any],
+    env: Mapping[str, str],
+) -> TemporalTestimony | None:
+    # The accumulator is an ADDITIVE layer. If it cannot run we do not loosen
+    # the spatial verdict -- we simply add no tightening. Its own state lives
+    # outside the .phi surface (under .claude) so recording taint is never
+    # itself an audited mutation.
+    try:
+        policy = OTPolicy(project_roots=(project_root,))
+        ledger = TemporalContinuityLedger(_temporal_state_dir(event, env))
+        return ledger.evaluate(proposal, policy)
+    except Exception as exc:  # noqa: BLE001 - never let the 4th judge crash the gate
+        _append_log(
+            env,
+            {
+                "phase": "pretool_temporal_error",
+                "error": f"{type(exc).__name__}: {exc}",
+                "proposal_id": proposal.proposal_id,
+            },
+        )
+        return None
+
+
+def _temporal_output(temporal: TemporalTestimony | None) -> dict[str, Any] | None:
+    # Map the sequence verdict onto Claude Code's permission surface. KILL is a
+    # hard deny (exfil of accumulated taint, no appeal). HOLD routes to the
+    # operator's native ask, same as a spatial HOLD. PASS adds nothing.
+    if temporal is None:
+        return None
+    if temporal.vote == JudgeVote.KILL:
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": (
+                    "Protect U Back temporal continuity denied before Claude Ask: "
+                    f"KILL {temporal.reason_code}. The action is spatially clean but "
+                    "the session sequence carries accumulated exposure to an exit."
+                ),
+            }
+        }
+    if temporal.vote == JudgeVote.HOLD:
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "ask",
+                "permissionDecisionReason": (
+                    "Protect U Back held this action for operator review: "
+                    f"HOLD {temporal.reason_code}. The sequence accumulated read "
+                    "exposure before this exit. Allow runs it once; deny blocks it."
+                ),
+            }
+        }
+    return None
+
+
+def _decision_rank(output: Mapping[str, Any] | None) -> int:
+    # tighten-only ordering: deny > ask > nothing. Lets the stronger of the
+    # spatial and temporal verdicts win without either loosening the other.
+    if output is None:
+        return 0
+    decision = output.get("hookSpecificOutput", {}).get("permissionDecision")
+    return {"deny": 2, "ask": 1}.get(decision, 0)
 
 
 def _pretool_deny_output(
@@ -936,6 +1026,19 @@ def _state_path(cid: str, event: Mapping[str, Any], env: Mapping[str, str]) -> P
     root.mkdir(parents=True, exist_ok=True)
     safe = hashlib.sha256(cid.encode("utf-8")).hexdigest()
     return root / f"{safe}.json"
+
+
+def _temporal_state_dir(event: Mapping[str, Any], env: Mapping[str, str]) -> Path:
+    # Sequence-memory state. Kept OUTSIDE the protected .phi surface (under
+    # .claude) so writing taint is not itself an audited mutation. Honors the
+    # same explicit override knob as the xray state dir for test isolation.
+    override = env.get("PUB_CLAUDE_TEMPORAL_STATE_DIR")
+    if override:
+        root = Path(override)
+    else:
+        root = Path(_event_cwd(event, env)) / ".claude" / TEMPORAL_STATE_DIR_NAME
+    root.mkdir(parents=True, exist_ok=True)
+    return root
 
 
 def _state_ttl_seconds(env: Mapping[str, str]) -> int:
