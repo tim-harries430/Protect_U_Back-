@@ -1,0 +1,10 @@
+{
+  "actor_id": "claude_code",
+  "branch_id": "blindspot-A",
+  "event_count": 1,
+  "hard_markers": [],
+  "last_event_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+  "schema_version": "temporal_continuity:v0",
+  "soft_read_count": 1,
+  "tainted_artifacts": {}
+}

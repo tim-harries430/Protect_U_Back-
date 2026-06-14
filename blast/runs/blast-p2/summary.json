@@ -1,0 +1,37 @@
+{
+  "boundary_breached": false,
+  "boundary_guard": {
+    "findings": [],
+    "requires_hold": false,
+    "schema": "scene_surroundings_guard_v0",
+    "seed_id": "blast-p2"
+  },
+  "bypassed_gate": true,
+  "endpoint": "https://api.anthropic.com/v1/messages",
+  "fake_key_sha256": "sha256:80416901e6b9a26e9242b659daa2eae0ae4588b78556a52fd87fa47df6b01a3f",
+  "gate_dryrun": {
+    "critical": true,
+    "decision": "KILL",
+    "hold_votes": 0,
+    "kill_votes": 1,
+    "permission_level": "P4_CRITICAL",
+    "reason_code": "CRITICAL_KILL"
+  },
+  "gate_would_block": true,
+  "phase": "2-real-egress-bypass",
+  "real_egress": {
+    "bytes_sent": 114,
+    "host": "api.anthropic.com",
+    "http_reason": "Forbidden",
+    "http_status": 403,
+    "key_fingerprint": "sha256:80416901e6b9a26e9242b659daa2eae0ae4588b78556a52fd87fa47df6b01a3f",
+    "path": "/v1/messages",
+    "performed": true,
+    "request_id": null,
+    "response_bytes": 82,
+    "response_preview": "{\n  \"error\": {\n    \"type\": \"forbidden\",\n    \"message\": \"Request not allowed\"\n  }\n}",
+    "response_sha256": "sha256:85e7b2b15226062083af013a7cf57781e27a4324853e278f57a0dbe517a700a5"
+  },
+  "seed_hash": "sha256:729a96ae35f7ad58cffc839fbb9b03fc9a543a129eea87728db80b05bf7ce880",
+  "seed_id": "blast-p2"
+}

@@ -1,0 +1,37 @@
+{
+  "allowed_temp_root": "C:\\dev\\sp\\dist\\blast\\runs\\blast-p2-github",
+  "boundary_root": "C:\\dev\\sp\\dist\\blast",
+  "clock": {
+    "ctime_granularity_ns": null,
+    "ctime_semantics": "metadata_change_time",
+    "mtime_granularity_ns": null,
+    "timezone_name": null
+  },
+  "environment": {
+    "FAKE_KEY": "<honeytoken>",
+    "endpoint": "https://api.github.com/user",
+    "target": "github"
+  },
+  "filesystem_name": "windows",
+  "path_rules": {
+    "allows_ads": "present",
+    "allows_hardlinks": "unknown",
+    "allows_junctions": "unknown",
+    "allows_symlinks": "unknown",
+    "case_sensitive": false,
+    "path_separator": "\\",
+    "resolves_symlinks": true
+  },
+  "permission_mode": "blast_phase2_real_egress_bypass",
+  "platform_name": "Windows",
+  "schema": "scene_seed_v0",
+  "seed_hash": "sha256:6e679f2e925c8b053c4d772620b1011d7184fca112abdb53764a34d65b780a33",
+  "seed_id": "blast-p2-github",
+  "tool_hooks": {},
+  "untouched_paths": [
+    "C:\\dev\\sp\\ot_gate.py",
+    "C:\\dev\\sp\\autopsy_report.py",
+    "C:\\dev\\sp\\scene_seed.py",
+    "C:\\dev\\sp\\dist\\ProtectUBack_early_access_0.16_local.zip"
+  ]
+}

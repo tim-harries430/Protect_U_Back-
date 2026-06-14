@@ -1,0 +1,28 @@
+{
+  "experiment": "widelens — 给 xray 加长焦",
+  "A_buried_write": {
+    "narrow_xray": {
+      "witnesses": 0,
+      "mutation_state": "STABLE",
+      "field_state": "STABLE"
+    },
+    "wide_lens": {
+      "verdict": "KILL",
+      "findings": [
+        "SURROUNDING_CREATED:exfil_dump.txt"
+      ]
+    }
+  },
+  "B_buried_read_egress": {
+    "real_egress_happened": true,
+    "narrow_xray": {
+      "witnesses": 0,
+      "mutation_state": "STABLE",
+      "field_state": "STABLE"
+    },
+    "wide_lens": {
+      "verdict": "CLEAR",
+      "findings": []
+    }
+  }
+}

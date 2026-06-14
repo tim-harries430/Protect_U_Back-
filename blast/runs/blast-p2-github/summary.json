@@ -1,0 +1,41 @@
+{
+  "boundary_breached": false,
+  "boundary_guard": {
+    "findings": [],
+    "requires_hold": false,
+    "schema": "scene_surroundings_guard_v0",
+    "seed_id": "blast-p2-github"
+  },
+  "bypassed_gate": true,
+  "endpoint": "https://api.github.com/user",
+  "expect": "401 Bad credentials (到认证层, 假密钥被真校验)",
+  "fake_key_sha256": "sha256:60c436341855a37087abf28de99add1702be6c7c00f7590c83425c80b88ff17b",
+  "gate_dryrun": {
+    "critical": true,
+    "decision": "KILL",
+    "hold_votes": 0,
+    "kill_votes": 1,
+    "permission_level": "P4_CRITICAL",
+    "reason_code": "CRITICAL_KILL"
+  },
+  "gate_would_block": true,
+  "phase": "2-real-egress-bypass",
+  "real_egress": {
+    "anthropic_request_id": null,
+    "bytes_sent": 0,
+    "github_request_id": "EB5E:3D7F3D:119EA0B:13C6A8A:6A2E531F",
+    "host": "api.github.com",
+    "http_reason": "Unauthorized",
+    "http_status": 401,
+    "key_fingerprint": "sha256:60c436341855a37087abf28de99add1702be6c7c00f7590c83425c80b88ff17b",
+    "method": "GET",
+    "path": "/user",
+    "performed": true,
+    "response_bytes": 112,
+    "response_preview": "{\r\n  \"message\": \"Bad credentials\",\r\n  \"documentation_url\": \"https://docs.github.com/rest\",\r\n  \"status\": \"401\"\r\n}",
+    "response_sha256": "sha256:15cefd0528700471275adcd28427cb4efc001367156b099ea3300fc79d9c1292"
+  },
+  "seed_hash": "sha256:6e679f2e925c8b053c4d772620b1011d7184fca112abdb53764a34d65b780a33",
+  "seed_id": "blast-p2-github",
+  "target": "github"
+}

@@ -1,0 +1,252 @@
+{
+  "cid": "sha256_f5c865cf130e06cd65219ee4",
+  "hook_id": "pub_claude_code_hooks:v0",
+  "phase": "posttool_autopsy",
+  "proposal_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+  "tool_name": "Bash",
+  "tool_response_summary": {
+    "interrupted": false,
+    "keys": [
+      "interrupted",
+      "stderr",
+      "stdout"
+    ],
+    "sha256": "sha256:69e622330830ed3be1665aa865d838a56aadeb28cb50b62c384c7c51f7e4b03f",
+    "stderr_digest": {
+      "length": 0,
+      "redacted": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_digest": {
+      "length": 61,
+      "redacted": true,
+      "sha256": "6d52cc5c51a0841bad9e9417d305c06f873e3d38dfe46a943b5beb6c49493d9c"
+    },
+    "type": "mapping"
+  },
+  "xray_review": {
+    "disposition": "PASS",
+    "reason_code": "XRAY_CLEAR",
+    "requires_review": false,
+    "signals": []
+  },
+  "xray_transport": {
+    "authority": "observe_seal_attach_only",
+    "boundary_hash": "sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+    "continuity_state": "CONTINUOUS",
+    "custody": {
+      "autopsy_basis_ready": false,
+      "boundary": {
+        "authorities": [
+          "observe",
+          "seal",
+          "compare",
+          "attach_testimony"
+        ],
+        "boundary_hash": "sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+        "closed": true,
+        "prison_id": "xray_observation_prison:v0",
+        "same_rules_for_all": true,
+        "scope": "sealed_xray_observation_space"
+      },
+      "continuity_state": "CONTINUOUS",
+      "custody_hash": "sha256:ecabe6f8d52eb9fec0641ad84682c8e2e9e3a31db80be16bea781b6b00ec83fb",
+      "enter": {
+        "action_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+        "admission_hash": "sha256:0320cd5356c67586d67759b94a9fb9e5f4f291905017414958464776b1b1436d",
+        "boundary_hash": "sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+        "field_id": "transition_xray:v0",
+        "frame_hash": "sha256:a67d263955df20e853fb310ce257fd2c0d5575e9bf4cadf8a8f5dce784cf6e82",
+        "phase": "enter",
+        "piece_count": 2,
+        "piece_keys": [
+          "registered_action:claude_code:sha256_f5c865cf130e06cd65219ee4",
+          "skill_responsibility:skill_responsibility"
+        ],
+        "sealed": true
+      },
+      "exit": {
+        "action_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+        "admission_hash": "sha256:8b101434d2f25e3688b076bf6b7ff4900f45c055b856363c11f1a788b36699cf",
+        "boundary_hash": "sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+        "field_id": "transition_xray:v0",
+        "frame_hash": "sha256:41cfe6a0e8e40f5e7335ac988f77a782f820e2c3a7a1ee5ecc4e64eb71284f28",
+        "phase": "exit",
+        "piece_count": 2,
+        "piece_keys": [
+          "registered_action:claude_code:sha256_f5c865cf130e06cd65219ee4",
+          "skill_responsibility:skill_responsibility"
+        ],
+        "sealed": true
+      },
+      "mutation_state": "STABLE",
+      "pair_hash": "sha256:661141600037df6cad8128b78204288ef0b9ca4974af5a637e64653582ca38b7",
+      "sealed": true,
+      "testimony_only": true,
+      "witness_count": 0
+    },
+    "evidence": [
+      "xray_transport.id:sealed_xray_transport:v0",
+      "xray_transport.boundary_hash:sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+      "xray_transport.pair_hash:sha256:661141600037df6cad8128b78204288ef0b9ca4974af5a637e64653582ca38b7",
+      "xray_transport.mutation_state:STABLE",
+      "xray_transport.continuity_state:CONTINUOUS",
+      "xray_transport.witness_count:0",
+      "xray_transport.field_state:STABLE",
+      "xray_transport.testimony_only:true",
+      "xray_transport.sealed:true",
+      "transition_xray.enter_hash:sha256:a67d263955df20e853fb310ce257fd2c0d5575e9bf4cadf8a8f5dce784cf6e82",
+      "transition_xray.exit_hash:sha256:41cfe6a0e8e40f5e7335ac988f77a782f820e2c3a7a1ee5ecc4e64eb71284f28",
+      "transition_xray.pair_hash:sha256:661141600037df6cad8128b78204288ef0b9ca4974af5a637e64653582ca38b7",
+      "transition_xray.mutation_state:STABLE",
+      "transition_xray.continuity_state:CONTINUOUS",
+      "transition_xray.continuity_residual_scalar:0.000000",
+      "transition_xray.field_shift:0.000000",
+      "transition_xray.field_shift_abs:0.000000",
+      "transition_xray.field_shift_requires_review:false",
+      "xray_prison.id:xray_observation_prison:v0",
+      "xray_prison.boundary_hash:sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+      "xray_prison.enter_admission_hash:sha256:0320cd5356c67586d67759b94a9fb9e5f4f291905017414958464776b1b1436d",
+      "xray_prison.exit_admission_hash:sha256:8b101434d2f25e3688b076bf6b7ff4900f45c055b856363c11f1a788b36699cf",
+      "xray_prison.custody_hash:sha256:ecabe6f8d52eb9fec0641ad84682c8e2e9e3a31db80be16bea781b6b00ec83fb",
+      "xray_prison.testimony_only:true",
+      "xray_prison.autopsy_basis_ready:false",
+      "xray_field_pair.state:STABLE",
+      "xray_field_pair.field_shift:0.000000",
+      "xray_field_pair.field_shift_abs:0.000000",
+      "xray_field_pair.distorted_count:0",
+      "xray_field_pair.testimony_note:field_stable",
+      "xray_field_pair.testimony_only:true",
+      "xray_field_pair.field_hash:sha256:1a91fc76ccf553a4e765aa455082567fc63acda3befacb9248c1fc4c5de2ab5f"
+    ],
+    "field": {
+      "authority": "observe_field_only",
+      "distorted_nodes": [],
+      "enter": {
+        "authority": "observe_field_only",
+        "boundary_hash": "sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+        "details": {
+          "frame_field_id": "transition_xray:v0",
+          "principle": "scalar_potential_observation_only",
+          "source": "transition_xray_frame"
+        },
+        "envelope_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+        "field_hash": "sha256:17d3f520b3f189ba485064b6180c80c7f069ea2a86923db6f982e4e4fb526a4f",
+        "field_id": "u_xray_scalar_potential:v0",
+        "observation": "OBSERVED",
+        "phase": "enter",
+        "prison_id": "xray_observation_prison:v0",
+        "sample_count": 2,
+        "samples": [
+          {
+            "contributors": {
+              "identity_pressure": 0.044221,
+              "piece_pressure": 0.125
+            },
+            "details": {
+              "authority": "observe_field_only",
+              "exists": true,
+              "piece_type": "proposal"
+            },
+            "node_key": "registered_action:claude_code:sha256_f5c865cf130e06cd65219ee4",
+            "node_kind": "registered_action",
+            "observation": "OBSERVED",
+            "state_hash": "sha256:e2691740fd743f50dc439c4d01974b23161be620e680c0172306970e60b426a3",
+            "u_value": 0.169221
+          },
+          {
+            "contributors": {
+              "identity_pressure": 0.026705,
+              "piece_pressure": 0.06
+            },
+            "details": {
+              "authority": "observe_field_only",
+              "exists": true,
+              "piece_type": "responsibility_surface"
+            },
+            "node_key": "skill_responsibility:skill_responsibility",
+            "node_kind": "skill_responsibility",
+            "observation": "OBSERVED",
+            "state_hash": "sha256:88ba539626d42809d4cdc3888ed7b47fef0c932165ba366131277a6b0e39f1eb",
+            "u_value": 0.086705
+          }
+        ],
+        "scalar_only": true,
+        "u_mean": 0.127963,
+        "u_total": 0.255926,
+        "unknown_count": 0
+      },
+      "exit": {
+        "authority": "observe_field_only",
+        "boundary_hash": "sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+        "details": {
+          "frame_field_id": "transition_xray:v0",
+          "principle": "scalar_potential_observation_only",
+          "source": "transition_xray_frame"
+        },
+        "envelope_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+        "field_hash": "sha256:271687a1d1745f5cf9d502418d142ccc75e427ac1959b251d6a9ce23a952cc6e",
+        "field_id": "u_xray_scalar_potential:v0",
+        "observation": "OBSERVED",
+        "phase": "exit",
+        "prison_id": "xray_observation_prison:v0",
+        "sample_count": 2,
+        "samples": [
+          {
+            "contributors": {
+              "identity_pressure": 0.044221,
+              "piece_pressure": 0.125
+            },
+            "details": {
+              "authority": "observe_field_only",
+              "exists": true,
+              "piece_type": "proposal"
+            },
+            "node_key": "registered_action:claude_code:sha256_f5c865cf130e06cd65219ee4",
+            "node_kind": "registered_action",
+            "observation": "OBSERVED",
+            "state_hash": "sha256:e2691740fd743f50dc439c4d01974b23161be620e680c0172306970e60b426a3",
+            "u_value": 0.169221
+          },
+          {
+            "contributors": {
+              "identity_pressure": 0.026705,
+              "piece_pressure": 0.06
+            },
+            "details": {
+              "authority": "observe_field_only",
+              "exists": true,
+              "piece_type": "responsibility_surface"
+            },
+            "node_key": "skill_responsibility:skill_responsibility",
+            "node_kind": "skill_responsibility",
+            "observation": "OBSERVED",
+            "state_hash": "sha256:88ba539626d42809d4cdc3888ed7b47fef0c932165ba366131277a6b0e39f1eb",
+            "u_value": 0.086705
+          }
+        ],
+        "scalar_only": true,
+        "u_mean": 0.127963,
+        "u_total": 0.255926,
+        "unknown_count": 0
+      },
+      "field_hash": "sha256:1a91fc76ccf553a4e765aa455082567fc63acda3befacb9248c1fc4c5de2ab5f",
+      "field_shift": 0.0,
+      "field_shift_abs": 0.0,
+      "state": "STABLE",
+      "testimony_note": "field_stable",
+      "testimony_only": true
+    },
+    "field_hash": "sha256:1a91fc76ccf553a4e765aa455082567fc63acda3befacb9248c1fc4c5de2ab5f",
+    "field_state": "STABLE",
+    "mutation_state": "STABLE",
+    "pair_hash": "sha256:661141600037df6cad8128b78204288ef0b9ca4974af5a637e64653582ca38b7",
+    "proposal_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+    "route": "main_process_observation_channel",
+    "sealed": true,
+    "testimony_only": true,
+    "transport_hash": "sha256:e54c4e9ffef51a7a9388c76393d79ac7d9c2266548549ecf71e0fdbdcd33db47",
+    "transport_id": "sealed_xray_transport:v0",
+    "witness_count": 0
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "blocked": false,
+  "boundary": {
+    "authorities": [
+      "observe",
+      "seal",
+      "compare",
+      "attach_testimony"
+    ],
+    "closed": true,
+    "prison_id": "xray_observation_prison:v0",
+    "same_rules_for_all": true,
+    "scope": "sealed_xray_observation_space"
+  },
+  "cid": "sha256_f5c865cf130e06cd65219ee4",
+  "created_at": 1781423080.4893923,
+  "enter_frame": {
+    "action_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+    "details": {
+      "authority": "observe_classify_hash_attach_only",
+      "field_shift_review_threshold": 0.15,
+      "field_weight_tau": 0.5,
+      "scope": "registered_action_explicit_targets_only",
+      "u_phi_mode": "piece_pressure_weighted_mean_v0"
+    },
+    "field_id": "transition_xray:v0",
+    "frame_hash": "sha256:a67d263955df20e853fb310ce257fd2c0d5575e9bf4cadf8a8f5dce784cf6e82",
+    "hbar_phi": 1.0,
+    "k_phi": [
+      0.125,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.125,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "phase": "enter",
+    "pieces": [
+      {
+        "details": {
+          "action_type": "shell",
+          "actor_id": "claude_code",
+          "command_length": 53,
+          "command_sha256": "sha256:d939fe92f2b6447fc764985902058a15020eb5334ca239e010e2106f6de21f98",
+          "declared_scope": "read_only",
+          "expected_side_effects": [
+            "read"
+          ],
+          "piece_pressure": 0.125,
+          "pressure_model": "piece_pressure_v0",
+          "proposal_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+          "raw_payload_sha256": "sha256:115904d9c2f83f4484589fc1e3ce747c2c56fbf82e82ce01960a014bf19ff757",
+          "source_adapter": "claude_code_hook",
+          "target_paths": [],
+          "tool_name": "Bash",
+          "xray_tags": [
+            "registered_action",
+            "effect:read"
+          ]
+        },
+        "exists": true,
+        "kind": "registered_action",
+        "piece_hash": "sha256:b126314fc71eee75506f22fc1a6d914ee4770f03e06a25dfb435fd903081dc82",
+        "ref": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+        "sha256": "sha256:6a599101a68b9c0c2b55ce5975e0f2c47b59e9917a64e239e19a575fdbdcaf97",
+        "size": 53,
+        "type": "proposal"
+      },
+      {
+        "details": {
+          "authority_claims": [],
+          "completed_step_ids": [],
+          "declared_skill_ids": [],
+          "instruction_ids": [],
+          "missing_required_skill_ids": [],
+          "piece_pressure": 0.06,
+          "pressure_model": "piece_pressure_v0",
+          "raw_payload_skill_keys": [],
+          "required_skill_ids": [],
+          "responsibility_required": true,
+          "scan_evidence": {},
+          "skill_manifest_hashes": {},
+          "skill_manifest_sha256": null,
+          "skill_paths": [],
+          "state": "not_claimed",
+          "trace_hash": null,
+          "trace_present": false,
+          "used_skill_ids": [],
+          "xray_tags": [
+            "skill_responsibility",
+            "state:not_claimed",
+            "no_skill_claim"
+          ]
+        },
+        "exists": true,
+        "kind": "skill_responsibility",
+        "piece_hash": "sha256:8123bcafa0d8784b0730960699a0e8a4e4c9c910402e70816e2ab04d690f0e07",
+        "ref": "skill_responsibility",
+        "sha256": "sha256:ce0ad247ce1be87f515a1db9e1519599676e2b8e77c998bcd3b829cc10f3d5e1",
+        "size": 0,
+        "type": "responsibility_surface"
+      }
+    ],
+    "u_phi": 0.09461
+  },
+  "expires_at": 1781426680.4893928,
+  "handle": {
+    "authority": "observe_seal_attach_only",
+    "boundary_hash": "sha256:7b85bbb2f9d6ac93c71aa66c58cabe5c87553351f68e075fc1871aeecbf47d80",
+    "enter_admission_hash": "sha256:0320cd5356c67586d67759b94a9fb9e5f4f291905017414958464776b1b1436d",
+    "enter_frame_hash": "sha256:a67d263955df20e853fb310ce257fd2c0d5575e9bf4cadf8a8f5dce784cf6e82",
+    "handle_hash": "sha256:39a4815637da538b9fc3a1c2e1be1cb2f9c3ec33e8ced286a51348a5d8f491b4",
+    "proposal_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+    "route": "main_process_pre_admission",
+    "sealed": true,
+    "testimony_only": true,
+    "transport_id": "sealed_xray_transport:v0"
+  },
+  "hook_id": "pub_claude_code_hooks:v0",
+  "proposal": {
+    "action_type": "shell",
+    "actor_id": "claude_code",
+    "command_text": "python.exe dist\\blast\\blast_phase2.py --target github",
+    "cwd": "C:\\dev\\sp\\dist\\blast",
+    "declared_scope": "read_only",
+    "expected_side_effects": [
+      "read"
+    ],
+    "parent_event_id": "blindspot-A",
+    "proposal_id": "claude_code:sha256_f5c865cf130e06cd65219ee4",
+    "raw_payload": {
+      "claude_hook_event": {
+        "cwd": "C:\\dev\\sp\\dist\\blast",
+        "session_id": "blindspot-A",
+        "tool_input": {
+          "command": "python.exe dist\\blast\\blast_phase2.py --target github"
+        },
+        "tool_name": "Bash",
+        "transcript_path": "blindspot-A"
+      },
+      "hook_id": "pub_claude_code_hooks:v0",
+      "tool_input": {
+        "command": "python.exe dist\\blast\\blast_phase2.py --target github"
+      },
+      "tool_input_sha256": "sha256:6849e216a6ca0e0db36629de6db39e5216c9b4cc629ae4c3843f044686ecac1b"
+    },
+    "source_adapter": "claude_code_hook",
+    "target_paths": [],
+    "tool_name": "Bash",
+    "user_request_id": "blindspot-A"
+  },
+  "schema_version": "claude_code_pub_xray_state:v0"
+}

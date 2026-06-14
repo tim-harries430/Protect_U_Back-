@@ -1,0 +1,17 @@
+{
+  "actor_id": "claude_code",
+  "branch_id": "blindspot-seq",
+  "event_count": 2,
+  "hard_markers": [
+    {
+      "kind": "secret",
+      "origin_event": "claude_code:sha256_8c441fdfa9d8aad74cb01dc0",
+      "origin_ref": "cat dist/blast/bait/.env",
+      "tier": "hard"
+    }
+  ],
+  "last_event_id": "claude_code:sha256_166c178e372784fda72b4e74",
+  "schema_version": "temporal_continuity:v0",
+  "soft_read_count": 2,
+  "tainted_artifacts": {}
+}
