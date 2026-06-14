@@ -23,7 +23,7 @@ If a protected file or process surface moved, changed, vanished, appeared, or be
 PUB must produce evidence and stop silent passage.
 ```
 
-## The v0.16 Local Baseline
+## The v0.18 Local Baseline
 
 v0.14 froze the first complete architecture slice:
 
@@ -39,7 +39,7 @@ v0.14 froze the first complete architecture slice:
 - Claude Code hook connector: `PreToolUse` and `PostToolUse`
 - local release packaging for offline review
 
-v0.16 keeps that boundary and adds the missing connection and Windows
+v0.18 keeps that boundary and adds the missing connection and Windows
 observation work:
 
 - Claude Code hooks now match all tools with `*`, not only a small Bash/Edit
@@ -53,7 +53,9 @@ observation work:
 - NTFS alternate data streams are separated by metadata-vector evidence instead
   of collapsing onto the host `file_id`
 - `temporal_continuity.py` adds a sequence-memory layer for read-then-egress and
-  read-then-opaque-exec attacks
+  read-then-opaque-exec patterns **across separate, observed tool calls**. A
+  single opaque subprocess that performs both the read and the egress internally
+  is not caught — see "Current Limits"
 
 The important boundary is unchanged:
 
@@ -127,7 +129,7 @@ If yes, it must leave a receipt.
 
 ## Current Verification
 
-Current v0.16 local checks include:
+Current v0.18 local checks include:
 
 ```text
 Release / connector / hook / temporal / Windows checks: 46 passed
@@ -166,7 +168,7 @@ environment blocked    -> replay/host capability issue
 From a local release package:
 
 ```powershell
-cd ProtectUBack_early_access_0.16_local
+cd ProtectUBack_early_access_0.18_local
 python project\protect_launcher.py audit test\sandbox_gateway_cases.json
 ```
 
@@ -197,7 +199,7 @@ The hook layer blocks before Claude's own permission ask when PUB has enough rea
 
 The connector is local and reversible. It modifies Claude Code project hook settings; it does not require a cloud service.
 
-In v0.16 the connector uses `matcher: "*"` so every Claude Code tool enters the
+In v0.18 the connector uses `matcher: "*"` so every Claude Code tool enters the
 hook. Tools PUB can model are audited directly. Tools it cannot model are held
 for explicit review with `UNKNOWN_CAPABILITY` rather than being silently allowed.
 
@@ -207,7 +209,7 @@ permission grant and should not be treated as a clean verdict.
 
 ## Windows Evidence
 
-v0.16 adds a focused Windows evidence report:
+v0.18 adds a focused Windows evidence report:
 
 ```text
 evidence/windows_reparse_ads_report.md
@@ -254,7 +256,7 @@ PUB is a local evidence gate. It should make unsafe or unclear tool movement vis
 
 ## Current Limits
 
-v0.16 is still an early-access local release. It improves the audit shell and
+v0.18 is still an early-access local release. It improves the audit shell and
 Windows observation layer before solving every forensic label.
 
 Known next work:
@@ -265,6 +267,24 @@ Known next work:
 - stronger mtime/ctime replay semantics
 - multi-auditor voting and separated verdict panels
 - cleaner public evidence docs
+
+Known limitation (red-team, reproducible):
+
+PUB infers an action's effects from the tool-call surface — the command text and
+its declared targets. An opaque subprocess such as `python script.py` is a black
+box to that surface: it parses to "read-only, no targets", so a secret read plus
+a network egress performed *inside one subprocess* passes every layer (spatial
+gate, X-ray review, X-ray transition snapshot, and the temporal sequence judge).
+The snapshot layers are blind here by construction — a read copies bytes without
+mutating any file, leaving no state delta to observe, and PUB does not watch the
+network. Spelling the same action out in the command (e.g. `curl ... "$(cat
+.env)"`) is correctly killed.
+
+This is the advisory-vs-mandatory boundary: PUB is a cooperative, user-space
+reference monitor over declared tool calls. Catching effects hidden inside an
+opaque child process requires mandatory interposition at the syscall boundary
+(minifilter/WFP on Windows, eBPF on Linux) feeding the same gate — tracked above
+as "direct runtime integration".
 
 These are not reasons to weaken the boundary.
 
